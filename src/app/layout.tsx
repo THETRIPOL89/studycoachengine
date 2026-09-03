@@ -5,7 +5,7 @@ import { ThemeProvider } from '@/components/ThemeProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://study-coach.app'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://study-coach-kohl.vercel.app/'
 
 export const metadata: Metadata = {
   title: {
@@ -54,10 +54,14 @@ export const metadata: Metadata = {
     }
   },
 
-  // Favicon (emoji-based via /app/icon.tsx)
+  // Favicon: ICO multi-size (16/32/48) + SVG per browser moderni.
   icons: {
     icon: [
+      { url: '/favicon.ico', sizes: '16x16 32x32 48x48', type: 'image/x-icon' },
       { url: '/icon.svg', type: 'image/svg+xml' }
+    ],
+    apple: [
+      { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' }
     ]
   },
 

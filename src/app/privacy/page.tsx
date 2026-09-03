@@ -13,7 +13,7 @@ export default function PrivacyPage() {
         <h2>1. Titolare del trattamento</h2>
         <p>
           Studio Coach è un servizio gestito da un singolo sviluppatore (di seguito "il Titolare").
-          Per qualsiasi richiesta relativa ai tuoi dati personali scrivi a: <strong>privacy@study-coach.app</strong> (sostituisci con la tua email reale prima del deploy).
+          Per qualsiasi richiesta relativa ai tuoi dati personali scrivi a: <strong>federico.lenzi06@gmail.com</strong> (sostituisci con la tua email reale prima del deploy).
         </p>
 
         <h2>2. Dati che raccogliamo</h2>
@@ -65,7 +65,7 @@ export default function PrivacyPage() {
           <li><strong>Portabilità</strong> (art. 20): ricevere i tuoi dati in formato JSON.</li>
           <li><strong>Opposizione</strong> (art. 21): opporti al trattamento per motivi legittimi.</li>
         </ul>
-        <p>Per esercitare questi diritti scrivi a <strong>privacy@study-coach.app</strong>. Rispondiamo entro 30 giorni.</p>
+        <p>Per esercitare questi diritti scrivi a <strong>federico.lenzi06@gmail.com</strong>. Rispondiamo entro 30 giorni.</p>
         <p>Hai inoltre diritto a proporre reclamo all'<strong>Garante per la Protezione dei Dati Personali</strong> (www.garanteprivacy.it).</p>
 
         <h2>7. Sicurezza</h2>
