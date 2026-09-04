@@ -13,14 +13,14 @@ export function ExamCard({ exam }: ExamCardProps) {
   const prepBg = getPreparationBg(exam.preparazione_percentuale)
 
   return (
-    <Link href={`/exam/${exam.id}`}>
+    <Link href={`/exam/${exam.id}`} className="block">
       <div className="card hover:shadow-md transition-shadow cursor-pointer h-full flex flex-col dark:bg-slate-800 dark:border-slate-700">
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <h3 className="font-bold text-lg text-slate-900 dark:text-white">{exam.nome_esame}</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400">{exam.universita}</p>
+        <div className="flex items-start justify-between gap-2 mb-4">
+          <div className="min-w-0 flex-1">
+            <h3 className="font-bold text-base sm:text-lg text-slate-900 dark:text-white break-words">{exam.nome_esame}</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 break-words">{exam.universita}</p>
           </div>
-          <div className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+          <div className={`flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
             giorni <= 7 ? 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
             giorni <= 30 ? 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' :
             'bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400'

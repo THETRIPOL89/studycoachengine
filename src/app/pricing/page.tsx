@@ -66,7 +66,7 @@ export default function PricingPage() {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 py-10 sm:py-16">
+      <main className="max-w-5xl mx-auto px-3 sm:px-4 py-8 sm:py-16">
         {/* Title */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-semibold mb-4">
@@ -170,7 +170,7 @@ export default function PricingPage() {
 
         {/* Compare table */}
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden mb-10">
-          <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+          <div className="px-4 sm:px-6 py-4 border-b border-slate-200 dark:border-slate-700">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
               Confronto dettagliato
             </h2>
@@ -179,13 +179,13 @@ export default function PricingPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-900/40">
-                  <th className="text-left px-6 py-3 font-semibold text-slate-600 dark:text-slate-300">
+                  <th className="text-left px-4 sm:px-6 py-3 font-semibold text-slate-600 dark:text-slate-300">
                     Funzione
                   </th>
-                  <th className="text-center px-6 py-3 font-semibold text-slate-600 dark:text-slate-300 w-32">
+                  <th className="text-center px-3 sm:px-6 py-3 font-semibold text-slate-600 dark:text-slate-300 w-24 sm:w-32">
                     Free
                   </th>
-                  <th className="text-center px-6 py-3 font-semibold text-coach-700 dark:text-coach-300 w-32">
+                  <th className="text-center px-3 sm:px-6 py-3 font-semibold text-coach-700 dark:text-coach-300 w-24 sm:w-32">
                     Premium
                   </th>
                 </tr>
@@ -193,8 +193,8 @@ export default function PricingPage() {
               <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                 {compareFeatures.map((f) => (
                   <tr key={f.label}>
-                    <td className="px-6 py-3 text-slate-700 dark:text-slate-300">{f.label}</td>
-                    <td className="px-6 py-3 text-center">
+                    <td className="px-4 sm:px-6 py-3 text-slate-700 dark:text-slate-300">{f.label}</td>
+                    <td className="px-3 sm:px-6 py-3 text-center">
                       {typeof f.free === 'boolean' ? (
                         f.free ? (
                           <Check className="w-5 h-5 text-emerald-500 inline" />
@@ -205,7 +205,7 @@ export default function PricingPage() {
                         <span className="text-slate-600 dark:text-slate-400">{f.free}</span>
                       )}
                     </td>
-                    <td className="px-6 py-3 text-center">
+                    <td className="px-3 sm:px-6 py-3 text-center">
                       {typeof f.premium === 'boolean' ? (
                         f.premium ? (
                           <Check className="w-5 h-5 text-emerald-500 inline" />

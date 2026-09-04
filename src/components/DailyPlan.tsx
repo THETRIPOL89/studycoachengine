@@ -228,14 +228,14 @@ export function DailyPlan({ examId, initialPlan, date }: DailyPlanProps) {
 
       {/* Quiz Modal */}
       {showQuiz && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl max-h-[85vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <h3 className="font-bold text-slate-900">Quiz AI</h3>
-                <p className="text-xs text-slate-500">{showQuiz.activity.attivita}</p>
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto">
+            <div className="flex items-start justify-between mb-5 gap-2">
+              <div className="min-w-0">
+                <h3 className="font-bold text-slate-900 dark:text-white">Quiz AI</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 break-words">{showQuiz.activity.attivita}</p>
               </div>
-              <button onClick={() => setShowQuiz(null)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400">
+              <button onClick={() => setShowQuiz(null)} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 flex-shrink-0" aria-label="Chiudi quiz">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -351,9 +351,9 @@ export function DailyPlan({ examId, initialPlan, date }: DailyPlanProps) {
       )}
 
       <div className="card">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
           <div>
-            <h3 className="font-bold text-xl text-slate-900 dark:text-white">Piano di oggi</h3>
+            <h3 className="font-bold text-lg sm:text-xl text-slate-900 dark:text-white">Piano di oggi</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400">
               {totalMinutes} minuti totali
               {completedCount > 0 && (
@@ -371,7 +371,7 @@ export function DailyPlan({ examId, initialPlan, date }: DailyPlanProps) {
             )}
             <button onClick={handleGenerate} disabled={loading} className="btn-secondary font-medium">
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              Rigenera
+              <span className="hidden sm:inline">Rigenera</span>
             </button>
           </div>
         </div>
@@ -403,16 +403,16 @@ export function DailyPlan({ examId, initialPlan, date }: DailyPlanProps) {
             const isCompleted = completedActivities.has(i)
 
             return (
-              <div 
-                key={i} 
-                className={`flex gap-4 p-4 rounded-xl border transition-all ${
-                  isCompleted 
-                    ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 opacity-70' 
+              <div
+                key={i}
+                className={`flex gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border transition-all ${
+                  isCompleted
+                    ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 opacity-70'
                     : 'bg-slate-50 dark:bg-slate-700/50 border-slate-100 dark:border-slate-600'
                 }`}
               >
                 <div className="flex-shrink-0">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                  <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center ${
                     isCompleted ? 'bg-green-200 dark:bg-green-800 text-green-700 dark:text-green-300' : 'bg-coach-100 dark:bg-coach-900/40 text-coach-700 dark:text-coach-300'
                   }`}>
                     {isCompleted ? (
@@ -423,32 +423,32 @@ export function DailyPlan({ examId, initialPlan, date }: DailyPlanProps) {
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2">
-                  <h4 className={`font-semibold text-sm ${isCompleted ? 'text-green-800 dark:text-green-300 line-through' : 'text-slate-900 dark:text-white'}`}>
+                  <div className="flex items-start justify-between gap-2 flex-wrap sm:flex-nowrap">
+                  <h4 className={`font-semibold text-sm break-words min-w-0 ${isCompleted ? 'text-green-800 dark:text-green-300 line-through' : 'text-slate-900 dark:text-white'}`}>
                       {activity.attivita}
                     </h4>
-                    <span className={`flex-shrink-0 flex items-center gap-1 text-xs px-2 py-1 rounded-md ${
-                      isCompleted 
-                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' 
+                    <span className={`flex-shrink-0 flex items-center gap-1 text-xs px-2 py-1 rounded-md whitespace-nowrap ${
+                      isCompleted
+                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
                         : 'bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-slate-600'
                     }`}>
                       <Clock className="w-3 h-3" />
                       {activity.durata} min
                     </span>
                   </div>
-                  <p 
+                  <p
                     className={`text-xs mt-1 flex items-start gap-1.5 leading-relaxed ${
                       isCompleted ? 'text-green-600 dark:text-green-400' : 'text-slate-500 dark:text-slate-400'
                     }`}
                     title={(activity as any)._debug ? JSON.stringify((activity as any)._debug) : ''}
                   >
                     <AlertCircle className={`w-3.5 h-3.5 flex-shrink-0 mt-0.5 ${isCompleted ? 'text-green-500' : 'text-coach-500'}`} />
-                    {activity.motivo}
+                    <span className="break-words">{activity.motivo}</span>
                   </p>
 
                   {!isCompleted && (
-                    <div className="mt-3 flex gap-2">
-                      <button 
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <button
                         onClick={() => handleStart(activity, i)}
                         className="text-xs bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:bg-coach-50 dark:hover:bg-coach-900/30 hover:border-coach-300 px-3 py-1.5 rounded-lg font-medium text-slate-700 dark:text-slate-200 transition-colors flex items-center gap-1.5"
                       >

@@ -294,7 +294,7 @@ export function MaterialUploader({ examId, initialMaterials }: MaterialUploaderP
                   </p>
                 </div>
 
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                   {!analyzed && (
                     <>
                       <button
@@ -302,6 +302,7 @@ export function MaterialUploader({ examId, initialMaterials }: MaterialUploaderP
                         disabled={analyzing === material.id}
                         className="p-2 hover:bg-amber-50 rounded-lg text-amber-600 transition-colors"
                         title="Analizza con AI e genera argomenti"
+                        aria-label="Analizza con AI"
                       >
                         {analyzing === material.id ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
@@ -311,8 +312,9 @@ export function MaterialUploader({ examId, initialMaterials }: MaterialUploaderP
                       </button>
                       <button
                         onClick={() => handleDownload(material)}
-                        className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"
+                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 transition-colors"
                         title="Scarica"
+                        aria-label="Scarica"
                       >
                         <Download className="w-4 h-4" />
                       </button>
@@ -320,8 +322,9 @@ export function MaterialUploader({ examId, initialMaterials }: MaterialUploaderP
                   )}
                   <button
                     onClick={() => handleDelete(material)}
-                    className="p-2 hover:bg-red-50 rounded-lg text-red-500 transition-colors"
+                    className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-red-500 transition-colors"
                     title="Elimina"
+                    aria-label="Elimina"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -334,25 +337,25 @@ export function MaterialUploader({ examId, initialMaterials }: MaterialUploaderP
 
       {/* Delete Confirmation Modal */}
       {deleteConfirmId !== null && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-slate-900">Conferma eliminazione</h3>
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-4 gap-2">
+              <h3 className="font-bold text-slate-900 dark:text-white">Conferma eliminazione</h3>
               <button onClick={() => {
                 setDeleteConfirmId(null)
                 setDeleteConfirmPath(null)
-              }} className="p-1 hover:bg-slate-100 rounded-lg text-slate-400">
+              }} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 flex-shrink-0" aria-label="Chiudi">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-slate-600 mb-6">
+            <p className="text-slate-600 dark:text-slate-300 mb-6 break-words">
               Sei sicuro di voler eliminare "<span className="font-medium">{materials.find(m => m.id === deleteConfirmId)?.nome_file ?? ''}</span>"?
             </p>
-            <div className="flex justify-end gap-3">
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3">
               <button onClick={() => {
                 setDeleteConfirmId(null)
                 setDeleteConfirmPath(null)
-              }} className="text-slate-500 hover:text-slate-700">
+              }} className="px-4 py-2 text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
                 Annulla
               </button>
               <button
@@ -362,7 +365,7 @@ export function MaterialUploader({ examId, initialMaterials }: MaterialUploaderP
               >
                 {deleting ? (
                   <>
-                    <Loader2 className="w-4 h-4 text-coach-500 animate-spin" />
+                    <Loader2 className="w-4 h-4 text-white animate-spin" />
                     Eliminando...
                   </>
                 ) : (

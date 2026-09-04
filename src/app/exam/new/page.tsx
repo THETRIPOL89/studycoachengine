@@ -38,8 +38,8 @@ export default function NewExamPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors">
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <Link href="/dashboard" className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 mb-6 transition-colors">
+      <div className="max-w-2xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
+        <Link href="/dashboard" className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 mb-4 sm:mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4" />
           Torna alla dashboard
         </Link>
@@ -54,40 +54,40 @@ export default function NewExamPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
             <div>
               <label className="label dark:text-slate-300 flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-coach-500" />
+                <BookOpen className="w-4 h-4 text-coach-500 flex-shrink-0" />
                 Nome esame *
               </label>
               <input name="nome_esame" type="text" required className="input" placeholder="Analisi Matematica 1" />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+              <div className="min-w-0">
                 <label className="label dark:text-slate-300 flex items-center gap-2">
-                  <GraduationCap className="w-4 h-4 text-coach-500" />
+                  <GraduationCap className="w-4 h-4 text-coach-500 flex-shrink-0" />
                   Universita *
                 </label>
                 <input name="universita" type="text" required className="input" placeholder="Universita di Roma" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <label className="label dark:text-slate-300">Corso di laurea *</label>
                 <input name="corso" type="text" required className="input" placeholder="Ingegneria" />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+              <div className="min-w-0">
                 <label className="label dark:text-slate-300 flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-coach-500" />
+                  <Calendar className="w-4 h-4 text-coach-500 flex-shrink-0" />
                   Data esame *
                 </label>
                 <input name="data_esame" type="date" required className="input" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <label className="label dark:text-slate-300 flex items-center gap-2">
-                  <Target className="w-4 h-4 text-coach-500" />
+                  <Target className="w-4 h-4 text-coach-500 flex-shrink-0" />
                   Voto obiettivo *
                 </label>
                 <select name="voto_obiettivo" required className="input">
@@ -102,9 +102,9 @@ export default function NewExamPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+              <div className="min-w-0">
                 <label className="label dark:text-slate-300 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-coach-500" />
+                  <Clock className="w-4 h-4 text-coach-500 flex-shrink-0" />
                   Ore al giorno *
                 </label>
                 <select name="ore_giorno" required className="input" defaultValue="2">
@@ -116,7 +116,7 @@ export default function NewExamPage() {
                   <option value="6">6+ ore</option>
                 </select>
               </div>
-              <div>
+              <div className="min-w-0">
                 <label className="label dark:text-slate-300">Modalita esame</label>
                 <select name="modalita" className="input">
                   <option value="">Seleziona...</option>
@@ -128,16 +128,16 @@ export default function NewExamPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+              <div className="min-w-0">
                 <label className="label dark:text-slate-300 flex items-center gap-2">
-                  <User className="w-4 h-4 text-coach-500" />
+                  <User className="w-4 h-4 text-coach-500 flex-shrink-0" />
                   Professore
                 </label>
                 <input name="professore" type="text" className="input" placeholder="Opzionale" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <label className="label dark:text-slate-300 flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-coach-500" />
+                  <FileText className="w-4 h-4 text-coach-500 flex-shrink-0" />
                   Categoria materia
                 </label>
                 <select name="categoria" className="input">

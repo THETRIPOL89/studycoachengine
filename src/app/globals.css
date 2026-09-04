@@ -3,9 +3,31 @@
 @tailwind utilities;
 
 @layer base {
-  body {
+  html, body {
     @apply bg-slate-50 text-slate-900;
+    /* Safety net: impedisce a qualunque figlio di forzare scroll
+       orizzontale su mobile. Il vero fix e' sistemare le sorgenti
+       di overflow, ma questo evita che la pagina intera scrolli. */
+    overflow-x: hidden;
   }
+
+  /* Tipico fix responsive: gli elementi flex senza min-width tendono a
+     non rispettare il vincolo del contenitore e a far traboccare il
+     contenuto. Applichiamolo a figli diretti di flex container. */
+  .min-w-0-children > * {
+    min-width: 0;
+  }
+}
+
+/* Nasconde la scrollbar su Webkit/Firefox. Usato per gli scroll
+   orizzontali (es. tab su mobile) dove la presenza della barra
+   toglierebbe spazio utile. */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
 @layer components {
@@ -22,11 +44,11 @@
   }
 
   .card {
-    @apply bg-white rounded-xl border border-slate-200 shadow-sm p-6 dark:bg-slate-800 dark:border-slate-600;
+    @apply bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-6 dark:bg-slate-800 dark:border-slate-600;
   }
 
   .input {
-    @apply w-full px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder-slate-400 focus:border-coach-500 focus:ring-2 focus:ring-coach-200 outline-none transition-all;
+    @apply w-full min-w-0 px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder-slate-400 focus:border-coach-500 focus:ring-2 focus:ring-coach-200 outline-none transition-all;
   }
 
   .label {

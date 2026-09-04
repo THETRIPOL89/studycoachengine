@@ -55,39 +55,39 @@ export function PaywallModal({ reason, onClose }: PaywallModalProps) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 overflow-y-auto"
+      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-3 sm:p-4 overflow-y-auto"
       onClick={(e) => {
         if (e.target === e.currentTarget && !pending) onClose()
       }}
     >
       <div className="bg-white dark:bg-slate-800 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 dark:border-slate-700">
         {/* Header */}
-        <div className="relative p-6 sm:p-8 border-b border-slate-200 dark:border-slate-700">
+        <div className="relative p-5 sm:p-8 border-b border-slate-200 dark:border-slate-700">
           <button
             onClick={onClose}
             disabled={pending}
-            className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50"
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50"
             aria-label="Chiudi"
           >
             <X size={20} />
           </button>
 
-          <div className="flex items-center gap-3 mb-3">
-            <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+          <div className="flex items-center gap-3 mb-3 pr-10">
+            <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex-shrink-0">
               <Lock className="w-6 h-6 text-amber-600 dark:text-amber-400" />
             </div>
             <span className="text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
               Funzione Premium
             </span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+          <h2 className="text-xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2 break-words">
             {copy.title}
           </h2>
-          <p className="text-slate-600 dark:text-slate-400">{copy.subtitle}</p>
+          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base break-words">{copy.subtitle}</p>
         </div>
 
         {/* Body: 3 card piani */}
-        <div className="p-6 sm:p-8">
+        <div className="p-5 sm:p-8">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
             {PLANS.sort((a, b) => a.sortOrder - b.sortOrder).map((plan) => {
               const isLoading = loadingPlan === plan.key
@@ -98,7 +98,7 @@ export function PaywallModal({ reason, onClose }: PaywallModalProps) {
                   disabled={pending}
                   className={[
                     'relative text-left p-4 rounded-xl border-2 transition-all',
-                    'hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100',
+                    'hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 min-w-0',
                     plan.isRecommended
                       ? 'border-coach-500 bg-coach-50 dark:bg-coach-900/20 dark:border-coach-400'
                       : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'

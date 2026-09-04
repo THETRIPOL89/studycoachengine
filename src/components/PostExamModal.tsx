@@ -32,19 +32,19 @@ export function PostExamModal({ examName, onSubmit, onClose }: PostExamModalProp
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-coach-100 rounded-xl flex items-center justify-center">
-              <Trophy className="w-5 h-5 text-coach-600" />
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 sm:p-4">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-5 gap-2">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="w-10 h-10 bg-coach-100 dark:bg-coach-900/30 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Trophy className="w-5 h-5 text-coach-600 dark:text-coach-400" />
             </div>
-            <div>
-              <h3 className="font-bold text-slate-900">Esame completato!</h3>
-              <p className="text-xs text-slate-500">{examName}</p>
+            <div className="min-w-0">
+              <h3 className="font-bold text-slate-900 dark:text-white">Esame completato!</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 break-words">{examName}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400">
+          <button onClick={onClose} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 flex-shrink-0" aria-label="Chiudi">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -52,15 +52,15 @@ export function PostExamModal({ examName, onSubmit, onClose }: PostExamModalProp
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Superato? */}
           <div>
-            <label className="label">Esito *</label>
+            <label className="label dark:text-slate-300">Esito *</label>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setSuperato(true)}
                 className={`p-3 rounded-xl border-2 text-center font-semibold text-sm transition-all ${
-                  superato === true 
-                    ? 'border-success bg-green-50 text-green-700' 
-                    : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                  superato === true
+                    ? 'border-success bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                    : 'border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500'
                 }`}
               >
                 <Star className="w-5 h-5 mx-auto mb-1" />
@@ -70,9 +70,9 @@ export function PostExamModal({ examName, onSubmit, onClose }: PostExamModalProp
                 type="button"
                 onClick={() => setSuperato(false)}
                 className={`p-3 rounded-xl border-2 text-center font-semibold text-sm transition-all ${
-                  superato === false 
-                    ? 'border-danger bg-red-50 text-red-700' 
-                    : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                  superato === false
+                    ? 'border-danger bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                    : 'border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500'
                 }`}
               >
                 <X className="w-5 h-5 mx-auto mb-1" />
@@ -84,14 +84,14 @@ export function PostExamModal({ examName, onSubmit, onClose }: PostExamModalProp
           {/* Voto */}
           {superato === true && (
             <div>
-              <label className="label flex items-center gap-2">
-                <Star className="w-4 h-4 text-coach-500" />
+              <label className="label flex items-center gap-2 dark:text-slate-300">
+                <Star className="w-4 h-4 text-coach-500 flex-shrink-0" />
                 Voto ottenuto
               </label>
-              <select 
-                value={voto} 
+              <select
+                value={voto}
                 onChange={e => setVoto(e.target.value)}
-                className="input"
+                className="input dark:bg-slate-700 dark:border-slate-600 dark:text-white"
               >
                 <option value="">Seleziona...</option>
                 {[18,19,20,21,22,23,24,25,26,27,28,29,30].map(v => (
@@ -103,34 +103,34 @@ export function PostExamModal({ examName, onSubmit, onClose }: PostExamModalProp
 
           {/* Argomenti usciti */}
           <div>
-            <label className="label flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-coach-500" />
+            <label className="label flex items-center gap-2 dark:text-slate-300">
+              <BookOpen className="w-4 h-4 text-coach-500 flex-shrink-0" />
               Argomenti usciti
             </label>
             <textarea
               value={argomenti}
               onChange={e => setArgomenti(e.target.value)}
-              className="input min-h-[80px]"
+              className="input min-h-[80px] dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder-slate-400"
               placeholder="Quali argomenti sono usciti all'esame?"
             />
           </div>
 
           {/* Domande ricevute */}
           <div>
-            <label className="label flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 text-coach-500" />
+            <label className="label flex items-center gap-2 dark:text-slate-300">
+              <MessageSquare className="w-4 h-4 text-coach-500 flex-shrink-0" />
               Domande / Note
             </label>
             <textarea
               value={domande}
               onChange={e => setDomande(e.target.value)}
-              className="input min-h-[80px]"
+              className="input min-h-[80px] dark:bg-slate-700 dark:border-slate-600 dark:text-white dark:placeholder-slate-400"
               placeholder="Domande particolari? Trappole? Consigli per chi viene dopo?"
             />
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={superato === null}
             className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
           >

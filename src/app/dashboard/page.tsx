@@ -228,47 +228,70 @@ function DashboardPageInner() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors">
       {/* Header */}
       <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 transition-colors">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-coach-600 rounded-xl flex items-center justify-center">
-              <GraduationCap className="w-6 h-6 text-white" />
+        <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          {/* Riga superiore: logo + azioni. Su mobile il brand e compatto
+              (solo icona + titolo) e le azioni si spostano su una seconda
+              riga per evitare che pill Premium + email + logout + darkmode
+              trabocchino dai 320px. */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-coach-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="font-bold text-base sm:text-lg text-slate-900 dark:text-white truncate">Study Coach</h1>
+                <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 truncate">Il tuo tutor personale</p>
+              </div>
             </div>
-            <div>
-              <h1 className="font-bold text-lg text-slate-900 dark:text-white">Study Coach</h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Il tuo tutor personale</p>
+
+            {/* Su mobile nascondiamo le pill secondarie (Premium + email);
+              restano visibili solo dark mode e logout. La pill Premium
+              appare nella riga sotto full-width, in modo che sia sempre
+              raggiungibile senza overflow. */}
+            <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+              <DarkModeToggle />
+              {isPremium === true && (
+                <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700">
+                  <Crown className="w-3.5 h-3.5" />
+                  Premium
+                </span>
+              )}
+              <span className="text-sm text-slate-600 dark:text-slate-300 hidden md:block truncate max-w-[180px]">
+                {user.email}
+              </span>
+              <form action={signOut}>
+                <button type="submit" className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 transition-colors" aria-label="Esci">
+                  <LogOut className="w-5 h-5" />
+                </button>
+              </form>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <DarkModeToggle />
-            {isPremium === false && (
-              <button
-                onClick={() => setPaywallOpen(true)}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-white shadow-sm transition-all hover:shadow"
-              >
-                <Crown className="w-3.5 h-3.5" />
-                Passa a Premium
-              </button>
-            )}
-            {isPremium === true && (
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700">
-                <Crown className="w-3.5 h-3.5" />
-                Premium
-              </span>
-            )}
-            <span className="text-sm text-slate-600 dark:text-slate-300 hidden sm:block">
-              {user.email}
-            </span>
-            <form action={signOut}>
-              <button type="submit" className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 transition-colors">
-                <LogOut className="w-5 h-5" />
-              </button>
-            </form>
-          </div>
+          {/* Riga inferiore (mobile): pill Premium + email. Solo se
+              serve davvero (free) o se si vuole mostrare il badge. */}
+          {(isPremium === false || isPremium === true) && (
+            <div className="sm:hidden mt-2 flex items-center justify-between gap-2">
+              {isPremium === false && (
+                <button
+                  onClick={() => setPaywallOpen(true)}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-white shadow-sm"
+                >
+                  <Crown className="w-3.5 h-3.5" />
+                  Passa a Premium
+                </button>
+              )}
+              {isPremium === true && (
+                <span className="flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700">
+                  <Crown className="w-3.5 h-3.5" />
+                  Premium attivo
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className="max-w-6xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
         {/* Daily Reminders */}
         <DailyReminder exams={exams.map(e => ({
           id: e.id,
@@ -340,8 +363,8 @@ function DashboardPageInner() {
 
       {/* Toast per upgrade success/canceled */}
       {toast && (
-        <div className="fixed top-4 right-4 z-50 animate-in fade-in slide-in-from-top-2">
-          <div className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border ${
+        <div className="fixed top-3 left-3 right-3 sm:left-auto sm:right-4 sm:max-w-sm z-50 animate-in fade-in slide-in-from-top-2">
+          <div className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 rounded-lg shadow-lg border ${
             toast.kind === 'success'
               ? 'bg-emerald-50 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200'
               : toast.kind === 'canceled'
@@ -349,10 +372,11 @@ function DashboardPageInner() {
               : 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700 text-blue-800 dark:text-blue-200'
           }`}>
             {toast.kind === 'success' ? <CheckCircle className="w-5 h-5 flex-shrink-0" /> : <X className="w-5 h-5 flex-shrink-0" />}
-            <span className="text-sm font-medium">{toast.message}</span>
+            <span className="text-sm font-medium flex-1 min-w-0">{toast.message}</span>
             <button
               onClick={() => setToast(null)}
-              className="ml-2 p-0.5 hover:bg-black/5 dark:hover:bg-white/5 rounded"
+              className="ml-auto p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded"
+              aria-label="Chiudi notifica"
             >
               <X className="w-4 h-4" />
             </button>

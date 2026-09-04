@@ -79,19 +79,19 @@ export function StudyCalendar({ examId }: StudyCalendarProps) {
 
   return (
     <div className="card">
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center gap-2">
-          <CalendarDays className="w-5 h-5 text-coach-500" />
+      <div className="flex items-center justify-between gap-2 mb-5 flex-wrap">
+        <div className="flex items-center gap-2 min-w-0">
+          <CalendarDays className="w-5 h-5 text-coach-500 flex-shrink-0" />
           <h3 className="font-bold text-slate-900 dark:text-white">Calendario studio</h3>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={prevMonth} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500 transition-colors">
+        <div className="flex items-center gap-1">
+          <button onClick={prevMonth} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500 transition-colors" aria-label="Mese precedente">
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 min-w-[120px] text-center">
+          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 min-w-[110px] sm:min-w-[120px] text-center">
             {MONTH_NAMES[month - 1]} {year}
           </span>
-          <button onClick={nextMonth} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500 transition-colors">
+          <button onClick={nextMonth} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500 transition-colors" aria-label="Mese successivo">
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
@@ -141,7 +141,7 @@ export function StudyCalendar({ examId }: StudyCalendarProps) {
             })}
           </div>
 
-          <div className="mt-4 flex items-center gap-4 text-xs text-slate-500">
+          <div className="mt-4 flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-slate-500 dark:text-slate-400">
             <div className="flex items-center gap-1.5">
               <div className="w-3 h-3 rounded bg-green-500" />
               <span>≥2h</span>
