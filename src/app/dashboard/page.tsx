@@ -398,10 +398,6 @@ function DashboardPageInner() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white">Esami passati</h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                  Il tuo storico. Le card mostrano il riepilogo ma non sono cliccabili.
-                  Per modificare il feedback, apri l'esame da questa sezione.
-                </p>
               </div>
               <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-full">
                 {examsPassati.length}
