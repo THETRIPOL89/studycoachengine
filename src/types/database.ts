@@ -69,6 +69,15 @@ export interface Database {
           preparazione_percentuale: number
           giorni_mancanti: number
           created_at: string
+          // Campi Sprint 9 - esito finale dell'esame. NULL finche'
+          // l'utente non compila la PostExamModal. Per la UI si legge
+          // direttamente da Row; la scrittura passa da submitPostExam()
+          // in src/actions/post-exam.ts (che valida range 18-30 / 1-5).
+          voto_finale: number | null
+          soddisfazione: number | null
+          data_completamento: string | null
+          argomenti_usciti: string | null
+          domande_ricevute: string | null
         }
         Insert: {
           user_id: string
@@ -82,6 +91,9 @@ export interface Database {
           ore_giorno?: number
           stato?: 'in_corso' | 'completato' | 'sospeso'
           categoria?: 'scientifica' | 'mnemonica' | 'applicativa'
+          // I campi Sprint 9 sono sempre null all'inserimento: un
+          // esame appena creato non ha ancora un esito. Si compilano
+          // dopo, via submitPostExam().
         }
         Update: {
           nome_esame?: string
@@ -89,6 +101,15 @@ export interface Database {
           voto_obiettivo?: number
           stato?: 'in_corso' | 'completato' | 'sospeso'
           preparazione_percentuale?: number
+          // Campi Sprint 9 aggiornabili SOLO via submitPostExam().
+          // Non esporli qui: il caller deve passare per la action che
+          // valida i range (CHECK constraints a livello SQL sono la
+          // safety net finale).
+          voto_finale?: number | null
+          soddisfazione?: number | null
+          data_completamento?: string | null
+          argomenti_usciti?: string | null
+          domande_ricevute?: string | null
         }
         Relationships: []
       }

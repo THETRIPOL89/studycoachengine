@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { redirect } from 'next/navigation'
 import { useParams } from 'next/navigation'
 import { getUser } from '@/actions/auth'
-import { getExamById, getExamSessionCount } from '@/actions/exams'
+import { getExamById, getExamSessionCount, getExamStudySessionSummary } from '@/actions/exams'
 import { getDailyPlan } from '@/actions/coach'
 import { getMaterials } from '@/actions/materials'
 import { signOut } from '@/actions/auth'
@@ -12,6 +12,7 @@ import { ExamTabs } from '@/components/ExamTabs'
 import { CompetenceBar } from '@/components/CompetenceBar'
 import { ExamDayBanner } from '@/components/ExamDayBanner'
 import { StreakDisplay } from '@/components/StreakDisplay'
+import { ExamSummary } from '@/components/ExamSummary'
 import { daysUntil, formatDate } from '@/lib/utils'
 import { ArrowLeft, LogOut, Calendar, Target, Clock, TrendingUp, GraduationCap, Loader2 } from 'lucide-react'
 import Link from 'next/link'
@@ -25,6 +26,7 @@ export default function ExamPage() {
   const [plan, setPlan] = useState<any>(null)
   const [materials, setMaterials] = useState<any[]>([])
   const [sessionCount, setSessionCount] = useState(0)
+  const [sessionSummary, setSessionSummary] = useState({ count: 0, totalMinutes: 0 })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [initialTab, setInitialTab] = useState<TabName | undefined>(undefined)
@@ -48,12 +50,13 @@ export default function ExamPage() {
       try {
         setLoading(true)
         setError(null)
-        const [userRes, examRes, planRes, materialsRes, sessionCountRes] = await Promise.all([
+        const [userRes, examRes, planRes, materialsRes, sessionCountRes, sessionSummaryRes] = await Promise.all([
           getUser(),
           getExamById(id),
           getDailyPlan(id, new Date().toISOString().split('T')[0]),
           getMaterials(id),
           getExamSessionCount(id),
+          getExamStudySessionSummary(id),
         ])
         setUser(userRes)
         if (examRes.exam) {
@@ -65,6 +68,7 @@ export default function ExamPage() {
         setPlan(planRes.plan ?? null)
         setMaterials(materialsRes.materials ?? [])
         setSessionCount(sessionCountRes.count ?? 0)
+        setSessionSummary(sessionSummaryRes)
         setLoading(false)
       } catch (err) {
         console.error('Failed to load exam data:', err)
@@ -105,6 +109,10 @@ export default function ExamPage() {
 
   const giorni = daysUntil(exam.data_esame)
 
+  if (exam.stato === 'completato' || giorni < 0) {
+    return <ExamSummary examProp={exam} sessionCount={sessionCount} totalMinutesStudied={sessionSummary.totalMinutes} avgCompetences={avgCompetences} />;
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-600 sticky top-0 z-10">
@@ -119,7 +127,7 @@ export default function ExamPage() {
             </div>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
-            <StreakDisplay className="hidden sm:inline-flex" />
+            <StreakDisplay />
             <form action={signOut} className="flex-shrink-0">
               <button type="submit" className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 transition-colors" aria-label="Esci">
                 <LogOut className="w-5 h-5" />

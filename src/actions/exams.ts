@@ -2,7 +2,7 @@
 
 import { createServerSupabase } from '@/lib/supabase'
 import { revalidatePath } from 'next/cache'
-import { Exam, Topic } from '@/types/database'
+import { Exam, StudySession, Topic } from '@/types/database'
 import { checkPaywall } from '@/actions/subscription'
 
 export async function getExams() {
@@ -11,11 +11,17 @@ export async function getExams() {
 
   if (!user) return { exams: [] }
 
+  // Sprint 9: filtriamo "in_corso" lato client per evitare di dover
+  // tenere sincronizzato lo stato con la data. Un esame la cui
+  // data_esame e passata e ancora in_corso verra' mostrato nella
+  // sezione "In corso" con un banner per ricordare di compilare il
+  // feedback, ma verra' comunque proposto al coach engine solo se
+  // giorni_mancanti >= 0 (vedi generateDailyPlan).
+  const today = new Date().toISOString().split('T')[0]
   const { data, error } = await supabase
     .from('exams')
     .select('*')
     .eq('user_id', user.id)
-    .eq('stato', 'in_corso')
     .order('data_esame', { ascending: true })
 
   if (error) {
@@ -23,7 +29,49 @@ export async function getExams() {
     return { exams: [] }
   }
 
-  return { exams: data as Exam[] }
+  // "In corso" = stato in_corso E data_esame >= oggi (cioe non ancora
+  // passato). Teniamo dentro la dashboard anche gli in_corso con data
+  // passata cosi' l'utente vede il banner e puo' aprire la modale.
+  const all = (data ?? []) as Exam[]
+  const inCorso = all.filter(e => e.stato === 'in_corso' && e.data_esame >= today)
+  return { exams: inCorso, allExams: all }
+}
+
+// ============================================================
+// getExamsPassati - ritorna gli esami "passati" per la sezione
+// dedicata della dashboard.
+// ============================================================
+// Criteri: stato = 'completato' OR data_esame < oggi.
+// Ordinamento: piu' recenti prima (data_esame DESC).
+// Vengono inclusi anche gli in_corso con data passata, cosi' l'utente
+// vede subito "questo esame ti aspetta" e puo' cliccare per fare il
+// feedback. La dashboard poi apre la PostExamModal automaticamente
+// per il primo senza voto_finale.
+// ============================================================
+export async function getExamsPassati() {
+  const supabase = await createServerSupabase()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { exams: [] }
+
+  const today = new Date().toISOString().split('T')[0]
+  const { data, error } = await supabase
+    .from('exams')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('data_esame', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching passati:', error)
+    return { exams: [] }
+  }
+
+  const all = (data ?? []) as Exam[]
+  const passati = all.filter(e =>
+    e.stato === 'completato' ||
+    e.stato === 'sospeso' ||
+    e.data_esame < today
+  )
+  return { exams: passati }
 }
 
 export async function getExamById(id: string) {
@@ -336,6 +384,32 @@ export async function getExamSessionCount(examId: string) {
 
   if (error) return { count: 0 }
   return { count: count ?? 0 }
+}
+
+// ============================================================
+// getExamStudySessionSummary - returns count and total minutes of completed sessions
+// ============================================================
+export async function getExamStudySessionSummary(examId: string) {
+  const supabase = await createServerSupabase()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { count: 0, totalMinutes: 0 }
+
+  const { data, error } = await supabase
+    .from('study_sessions')
+    .select('*')
+    .eq('exam_id', examId)
+    .eq('completata', true)
+
+  if (error) {
+    console.error('Error fetching study session summary:', error)
+    return { count: 0, totalMinutes: 0 }
+  }
+
+  const sessions = (data ?? []) as StudySession[]
+  const totalMinutes = sessions.reduce((sum, session) => sum + (session.durata_minuti || 0), 0)
+  const count = sessions.length
+
+  return { count, totalMinutes }
 }
 
 export async function addManualTopics(

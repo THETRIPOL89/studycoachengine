@@ -6,12 +6,16 @@ import { getUser } from '@/actions/auth'
 import { getExams } from '@/actions/exams'
 import { signOut } from '@/actions/auth'
 import { getUserPlan } from '@/actions/subscription'
+import { getExamsPassati } from '@/actions/exams'
+import { submitPostExam } from '@/actions/post-exam'
 import { ExamCard } from '@/components/ExamCard'
+import { ExamPassedCard } from '@/components/ExamPassedCard'
 import { EmptyState } from '@/components/EmptyState'
 import { DailyReminder } from '@/components/DailyReminder'
 import { DarkModeToggle } from '@/components/DarkModeToggle'
 import { StreakDisplay } from '@/components/StreakDisplay'
 import { PaywallModal } from '@/components/PaywallModal'
+import { PostExamModal } from '@/components/PostExamModal'
 import { Plus, LogOut, GraduationCap, Loader2, ArrowDownAZ, Calendar, BarChart3, Sparkles, ChevronUp, ChevronDown, Crown, X, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 
@@ -125,10 +129,18 @@ export default function DashboardPage() {
 function DashboardPageInner() {
   const [user, setUser] = useState<any>(null)
   const [exams, setExams] = useState<any[]>([])
+  const [examsPassati, setExamsPassati] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [isPremium, setIsPremium] = useState<boolean | null>(null)
   const [paywallOpen, setPaywallOpen] = useState(false)
   const [toast, setToast] = useState<{ kind: 'success' | 'canceled' | 'info'; message: string } | null>(null)
+  // Sprint 9: se l'utente ha un esame con data passata e nessun voto
+  // registrato, mostriamo automaticamente la PostExamModal al primo
+  // caricamento della dashboard. Il primo "in ordine di data" viene
+  // proposto; se l'utente ne ha piu' di uno, gli appariranno uno alla
+  // volta ai login successivi (perche' dopo il submit l'esame esce
+  // dal filtro "voto_finale IS NULL").
+  const [postExamTarget, setPostExamTarget] = useState<{ id: string; nome: string } | null>(null)
 
   const searchParams = useSearchParams()
 
@@ -146,15 +158,28 @@ function DashboardPageInner() {
 
   useEffect(() => {
     async function loadData() {
-      const [userRes, examsRes, planRes] = await Promise.all([
+      const [userRes, examsRes, passatiRes, planRes] = await Promise.all([
         getUser(),
         getExams(),
+        getExamsPassati(),
         getUserPlan()
       ])
       setUser(userRes)
       setExams(examsRes.exams ?? [])
+      setExamsPassati(passatiRes.exams ?? [])
       setIsPremium(planRes.isPremium)
       setLoading(false)
+
+      // Auto-popup PostExamModal: cerca il primo esame "passato" senza
+      // voto_finale (cioe' l'utente non ha ancora confermato l'esito).
+      // Ordinamento: data_esame DESC (il piu' recente prima).
+      const passati = passatiRes.exams ?? []
+      const needsFeedback = passati
+        .filter((e: any) => e.voto_finale == null)
+        .sort((a: any, b: any) => (a.data_esame < b.data_esame ? 1 : -1))[0]
+      if (needsFeedback) {
+        setPostExamTarget({ id: needsFeedback.id, nome: needsFeedback.nome_esame })
+      }
     }
     loadData()
   }, [])
@@ -250,7 +275,7 @@ function DashboardPageInner() {
               appare nella riga sotto full-width, in modo che sia sempre
               raggiungibile senza overflow. */}
             <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
-              <StreakDisplay className="hidden sm:inline-flex" />
+              <StreakDisplay />
               <DarkModeToggle />
               {isPremium === true && (
                 <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700">
@@ -352,6 +377,7 @@ function DashboardPageInner() {
           </div>
         )}
 
+        {/* Sezione "In corso": la grid delle ExamCard, con sort. */}
         {exams.length === 0 ? (
           <EmptyState />
         ) : (
@@ -360,6 +386,32 @@ function DashboardPageInner() {
               <ExamCard key={exam.id} exam={exam} />
             ))}
           </div>
+        )}
+
+        {/* Sezione "Esami passati": lista compatta, solo se ce ne sono.
+            Le card passate mostrano voto + faccina e NON sono cliccabili
+            (l'utente ha gia' dato l'esame, non c'e' un "Coach" da aprire).
+            Per rivedere i dettagli storici l'utente va sulla pagina
+            /exam/[id] direttamente (vedi sprint 9 modalita' passato). */}
+        {examsPassati.length > 0 && (
+          <section className="mt-10">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Esami passati</h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                  Il tuo storico. Tocca una card per il riepilogo completo.
+                </p>
+              </div>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-full">
+                {examsPassati.length}
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {examsPassati.map((exam: any) => (
+                <ExamPassedCard key={exam.id} exam={exam} />
+              ))}
+            </div>
+          </section>
         )}
       </main>
 
@@ -391,6 +443,31 @@ function DashboardPageInner() {
         <PaywallModal
           reason="exam"
           onClose={() => setPaywallOpen(false)}
+        />
+      )}
+
+      {/* PostExamModal: si apre automaticamente al primo login dopo che
+          un esame e passato, per raccogliere l'esito (voto + soddisfazione).
+          L'utente puo' anche chiuderla senza compilare: in quel caso
+          l'esame resta "da feedback" e la modale si riapre al prossimo
+          login. submitPostExam() fa la validazione server-side. */}
+      {postExamTarget && (
+        <PostExamModal
+          examName={postExamTarget.nome}
+          onClose={() => setPostExamTarget(null)}
+          onSubmit={async (data) => {
+            const res = await submitPostExam(postExamTarget.id, data)
+            if (res.error) {
+              alert('Errore: ' + res.error)
+              return
+            }
+            setPostExamTarget(null)
+            // Ricarica gli esami passati per mostrare il voto appena
+            // inserito nella sezione dedicata. router.refresh() non
+            // basta perche' getExamsPassati() e' una client fetch.
+            const updated = await getExamsPassati()
+            setExamsPassati(updated.exams ?? [])
+          }}
         />
       )}
     </div>

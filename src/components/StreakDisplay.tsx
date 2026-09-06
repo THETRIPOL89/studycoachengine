@@ -79,6 +79,9 @@ export function StreakDisplay({ initial, className = '' }: StreakDisplayProps) {
     ? 'text-amber-400/60 dark:text-amber-400/50'
     : 'text-amber-500 dark:text-amber-400'
 
+  // Su mobile mostriamo SOLO l'icona (no label) per ridurre l'ingombro
+  // nell'header; la label completa riapare da sm: in su. Il tooltip
+  // resta sempre accessibile via title/aria-label.
   const label = isZero
     ? 'Ricomincia oggi'
     : `${state.streakCount} ${state.streakCount === 1 ? 'giorno' : 'giorni'}`
@@ -91,14 +94,14 @@ export function StreakDisplay({ initial, className = '' }: StreakDisplayProps) {
 
   return (
     <div
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg
+      className={`inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg
         bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700
         transition-colors ${pulse ? 'animate-flame-pulse' : ''} ${className}`}
       title={tooltip}
       aria-label={tooltip}
     >
       <Flame className={`w-4 h-4 ${colorClass} flex-shrink-0`} aria-hidden="true" />
-      <span className={`text-xs font-semibold ${colorClass} whitespace-nowrap`}>
+      <span className={`text-xs font-semibold ${colorClass} whitespace-nowrap hidden sm:inline`}>
         {label}
       </span>
     </div>

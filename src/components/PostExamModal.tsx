@@ -3,11 +3,22 @@
 import { useState } from 'react'
 import { Trophy, X, Star, MessageSquare, BookOpen } from 'lucide-react'
 
+// 5 faccine per la soddisfazione. Emoji standard, accessibili via
+// aria-label. La scala 1-5 segue l'ordine: triste -> euforico.
+const FACCINE: Array<{ value: number; emoji: string; label: string }> = [
+  { value: 1, emoji: '😞', label: 'Deluso' },
+  { value: 2, emoji: '😕', label: 'Annoiato' },
+  { value: 3, emoji: '😐', label: 'Neutro' },
+  { value: 4, emoji: '🙂', label: 'Contento' },
+  { value: 5, emoji: '😄', label: 'Euforico' }
+]
+
 interface PostExamModalProps {
   examName: string
   onSubmit: (data: {
     superato: boolean
     voto: number | null
+    soddisfazione: number | null
     argomenti_usciti: string
     domande_ricevute: string
   }) => void
@@ -17,6 +28,7 @@ interface PostExamModalProps {
 export function PostExamModal({ examName, onSubmit, onClose }: PostExamModalProps) {
   const [superato, setSuperato] = useState<boolean | null>(null)
   const [voto, setVoto] = useState('')
+  const [soddisfazione, setSoddisfazione] = useState<number | null>(null)
   const [argomenti, setArgomenti] = useState('')
   const [domande, setDomande] = useState('')
 
@@ -26,6 +38,7 @@ export function PostExamModal({ examName, onSubmit, onClose }: PostExamModalProp
     onSubmit({
       superato,
       voto: superato && voto ? parseInt(voto) : null,
+      soddisfazione,
       argomenti_usciti: argomenti,
       domande_ricevute: domande
     })
@@ -100,6 +113,37 @@ export function PostExamModal({ examName, onSubmit, onClose }: PostExamModalProp
               </select>
             </div>
           )}
+
+          {/* Faccina soddisfazione */}
+          <div>
+            <label className="label dark:text-slate-300">
+              Quanto sei soddisfatto del risultato?
+            </label>
+            <div className="flex items-center justify-between gap-1 sm:gap-2">
+              {FACCINE.map((f) => {
+                const selected = soddisfazione === f.value
+                return (
+                  <button
+                    key={f.value}
+                    type="button"
+                    onClick={() => setSoddisfazione(f.value)}
+                    aria-label={f.label}
+                    aria-pressed={selected}
+                    className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl border-2 transition-all ${
+                      selected
+                        ? 'border-coach-500 bg-coach-50 dark:bg-coach-900/30 scale-105'
+                        : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500'
+                    }`}
+                  >
+                    <span className="text-2xl sm:text-3xl leading-none" aria-hidden="true">{f.emoji}</span>
+                    <span className="text-[10px] sm:text-xs font-medium text-slate-600 dark:text-slate-300 leading-tight text-center">
+                      {f.label}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
 
           {/* Argomenti usciti */}
           <div>
