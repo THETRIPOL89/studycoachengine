@@ -23,6 +23,14 @@ export interface Database {
           // Il codice utente non deve MAI leggere/scrivere questi campi.
           // Letture: usare getUserPlan() da subscription.ts (server-side).
           // Scritture: SOLO via webhook Stripe con service_role.
+          //
+          // Campi streak aggiunti dalla migration Sprint 8 (trigger-based):
+          //   - Letture consentite lato client tramite getStreak() in
+          //     src/actions/streak.ts (server action dedicata con cast runtime).
+          //   - Scritture SOLO via il trigger trg_update_user_streak
+          //     (security definer), che bypassa la RLS dell'utente.
+          //   - Esclusi da Row per lo stesso vincolo GenericTable dei
+          //     campi billing; le colonne esistono a livello SQL.
         }
         Insert: {
           id: string

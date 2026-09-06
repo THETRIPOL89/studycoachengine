@@ -11,6 +11,7 @@ import { signOut } from '@/actions/auth'
 import { ExamTabs } from '@/components/ExamTabs'
 import { CompetenceBar } from '@/components/CompetenceBar'
 import { ExamDayBanner } from '@/components/ExamDayBanner'
+import { StreakDisplay } from '@/components/StreakDisplay'
 import { daysUntil, formatDate } from '@/lib/utils'
 import { ArrowLeft, LogOut, Calendar, Target, Clock, TrendingUp, GraduationCap, Loader2 } from 'lucide-react'
 import Link from 'next/link'
@@ -117,11 +118,14 @@ export default function ExamPage() {
               <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 truncate">{exam.universita} • {exam.corso}</p>
             </div>
           </div>
-          <form action={signOut} className="flex-shrink-0">
-            <button type="submit" className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 transition-colors" aria-label="Esci">
-              <LogOut className="w-5 h-5" />
-            </button>
-          </form>
+          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+            <StreakDisplay className="hidden sm:inline-flex" />
+            <form action={signOut} className="flex-shrink-0">
+              <button type="submit" className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 transition-colors" aria-label="Esci">
+                <LogOut className="w-5 h-5" />
+              </button>
+            </form>
+          </div>
         </div>
       </header>
 

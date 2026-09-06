@@ -10,6 +10,7 @@ import { ExamCard } from '@/components/ExamCard'
 import { EmptyState } from '@/components/EmptyState'
 import { DailyReminder } from '@/components/DailyReminder'
 import { DarkModeToggle } from '@/components/DarkModeToggle'
+import { StreakDisplay } from '@/components/StreakDisplay'
 import { PaywallModal } from '@/components/PaywallModal'
 import { Plus, LogOut, GraduationCap, Loader2, ArrowDownAZ, Calendar, BarChart3, Sparkles, ChevronUp, ChevronDown, Crown, X, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
@@ -249,6 +250,7 @@ function DashboardPageInner() {
               appare nella riga sotto full-width, in modo che sia sempre
               raggiungibile senza overflow. */}
             <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+              <StreakDisplay className="hidden sm:inline-flex" />
               <DarkModeToggle />
               {isPremium === true && (
                 <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700">

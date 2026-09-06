@@ -30,6 +30,38 @@
   display: none;
 }
 
+/* ============================================================
+   Streak pulse animation
+   ============================================================
+   1.2s celebratory pulse usato da StreakDisplay quando
+   streak_count incrementa. Scala + cambio di tonalita amber
+   con drop-shadow per simulare il "glow" della fiamma.
+   animation-iteration-count: 1 (no loop).
+   ============================================================ */
+
+@keyframes flame-pulse {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  30% {
+    transform: scale(1.35);
+    filter: brightness(1.25) drop-shadow(0 0 6px rgba(245, 158, 11, 0.6));
+  }
+  60% {
+    transform: scale(1.15);
+    filter: brightness(1.1);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+.animate-flame-pulse {
+  animation: flame-pulse 1.2s ease-out 1;
+}
+
 @layer components {
   .btn-primary {
     @apply bg-coach-600 hover:bg-coach-700 text-white font-semibold py-2.5 px-5 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2;

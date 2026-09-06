@@ -106,6 +106,11 @@ export async function completeSession(
   }
 
   revalidatePath(`/exam/${examId}`)
+  // Anche /dashboard: la StreakDisplay nell'header legge profiles.streak_count
+  // aggiornato dal trigger, e un utente che completa una sessione potrebbe
+  // essere tornato sulla dashboard. Belt-and-suspenders accanto a
+  // router.refresh() chiamato da DailyPlan dopo completeSession.
+  revalidatePath('/dashboard')
   return { success: true }
 }
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { generateDailyPlan, markActivityComplete, PlanActivity } from '@/actions/coach'
 import { createSession, completeSession } from '@/actions/sessions'
 import { generateQuizFromMaterial } from '@/actions/groq'
@@ -19,6 +20,7 @@ interface DailyPlanProps {
 }
 
 export function DailyPlan({ examId, initialPlan, date }: DailyPlanProps) {
+  const router = useRouter()
   const [plan, setPlan] = useState<PlanActivity[] | null>(initialPlan || null)
   const [loading, setLoading] = useState(false)
   const [generateError, setGenerateError] = useState<string | null>(null)
@@ -145,7 +147,12 @@ export function DailyPlan({ examId, initialPlan, date }: DailyPlanProps) {
 
     setCompletedActivities(prev => new Set(prev).add(showFeedback.index))
     setShowFeedback(null)
-    window.location.reload()
+    // router.refresh() ri-esegue la server-component pipeline della
+    // pagina corrente: le StreakDisplay in pagina (su /dashboard e
+    // /exam/[id]) ri-fetcheranno profiles.streak_count aggiornato dal
+    // trigger e mostreranno la pulse animation. Piu' leggero di
+    // window.location.reload (non ri-scarica asset, mantiene scroll).
+    router.refresh()
   }
 
   function handleFeedbackSkip() {
