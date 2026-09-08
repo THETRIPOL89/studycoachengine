@@ -16,6 +16,7 @@ import { DarkModeToggle } from '@/components/DarkModeToggle'
 import { StreakDisplay } from '@/components/StreakDisplay'
 import { PaywallModal } from '@/components/PaywallModal'
 import { PostExamModal } from '@/components/PostExamModal'
+import { TutorialGuide } from '@/components/TutorialGuide'
 import { Plus, LogOut, GraduationCap, Loader2, ArrowDownAZ, Calendar, BarChart3, Sparkles, ChevronUp, ChevronDown, Crown, X, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 
@@ -252,6 +253,7 @@ function DashboardPageInner() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors">
+      <TutorialGuide />
       {/* Header */}
       <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 transition-colors">
         <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
@@ -275,7 +277,7 @@ function DashboardPageInner() {
               appare nella riga sotto full-width, in modo che sia sempre
               raggiungibile senza overflow. */}
             <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
-              <StreakDisplay />
+              <StreakDisplay onClick={() => window.open('/pricing', '_blank')} />
               <DarkModeToggle />
               {isPremium === true && (
                 <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700">
@@ -294,17 +296,17 @@ function DashboardPageInner() {
             </div>
           </div>
 
-          {/* Riga inferiore (mobile): pill Premium + email. Solo se
+          {/* Riga inferiore (mobile): link sottile per i piani + email. Solo se
               serve davvero (free) o se si vuole mostrare il badge. */}
           {(isPremium === false || isPremium === true) && (
             <div className="sm:hidden mt-2 flex items-center justify-between gap-2">
               {isPremium === false && (
                 <button
-                  onClick={() => setPaywallOpen(true)}
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-white shadow-sm"
+                  onClick={() => window.open('/pricing', '_blank')}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-coach-600 dark:hover:text-coach-400 transition-colors"
                 >
                   <Crown className="w-3.5 h-3.5" />
-                  Passa a Premium
+                  Scopri i piani
                 </button>
               )}
               {isPremium === true && (

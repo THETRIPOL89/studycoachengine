@@ -31,6 +31,7 @@ export interface StreakDisplayProps {
     isBroken: boolean
   }
   className?: string
+  onClick?: () => void
 }
 
 const NEUTRAL_INITIAL = {
@@ -40,7 +41,7 @@ const NEUTRAL_INITIAL = {
   isBroken: false
 }
 
-export function StreakDisplay({ initial, className = '' }: StreakDisplayProps) {
+export function StreakDisplay({ initial, className = '', onClick }: StreakDisplayProps) {
   const [state, setState] = useState(initial ?? NEUTRAL_INITIAL)
   const prevCountRef = useRef(state.streakCount)
   const [pulse, setPulse] = useState(false)
@@ -93,10 +94,14 @@ export function StreakDisplay({ initial, className = '' }: StreakDisplayProps) {
     : `Hai studiato ${state.streakCount} giorni di fila. Continua così!`
 
   return (
-    <div
+    <button
+      type="button"
+      onClick={onClick}
       className={`inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg
         bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700
-        transition-colors ${pulse ? 'animate-flame-pulse' : ''} ${className}`}
+        transition-colors ${pulse ? 'animate-flame-pulse' : ''}
+        ${onClick ? 'hover:bg-coach-50 dark:hover:bg-coach-900/30 hover:border-coach-200 dark:hover:border-coach-700 cursor-pointer' : ''}
+        ${className}`}
       title={tooltip}
       aria-label={tooltip}
     >
@@ -104,6 +109,6 @@ export function StreakDisplay({ initial, className = '' }: StreakDisplayProps) {
       <span className={`text-xs font-semibold ${colorClass} whitespace-nowrap hidden sm:inline`}>
         {label}
       </span>
-    </div>
+    </button>
   )
 }
