@@ -4,7 +4,11 @@ import { createServerSupabase } from '@/lib/supabase'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 
-export async function signUp(formData: FormData) {
+export async function signUp(formData: FormData): Promise<{
+  error?: string
+  success?: boolean
+  needsEmailConfirmation?: boolean
+}> {
   const supabase = await createServerSupabase()
 
   const email = String(formData.get('email') || '').trim()
@@ -20,7 +24,6 @@ export async function signUp(formData: FormData) {
     password,
     options: {
       data: { nome },
-      // dove atterrare DOPO il click sul link nella mail
       emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
     },
   })
@@ -29,20 +32,12 @@ export async function signUp(formData: FormData) {
     return { error: error.message }
   }
 
-  // Nessuna session → l'utente deve confermare la mail
+  // Nessuna session → serve conferma email
   if (!data.session) {
-    return {
-      success: true,
-      needsEmailConfirmation: true,
-      email,
-    }
+    return { success: true, needsEmailConfirmation: true }
   }
 
-  // (caso raro: conferma disattivata in Supabase)
-  return {
-    success: true,
-    needsEmailConfirmation: false,
-  }
+  return { success: true, needsEmailConfirmation: false }
 }
 
 export async function signIn(formData: FormData) {

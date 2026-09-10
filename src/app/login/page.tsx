@@ -12,46 +12,66 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+  e.preventDefault()
+  setError('')
+  setLoading(true)
 
-    const formData = new FormData(e.currentTarget)
-    const email = String(formData.get('email') || '').trim()
+  const formData = new FormData(e.currentTarget)
+  const email = String(formData.get('email') || '').trim()
 
-    const action = isLogin ? signIn : signUp
-    const result = await action(formData)
+  if (isLogin) {
+    const result = await signIn(formData)
 
     if (result?.error) {
       let msg = result.error
-      if (msg.includes('rate limit') || msg.includes('over_email_send_rate_limit')) {
-        msg = 'Troppe richieste. Aspetta qualche minuto prima di riprovare, o usa un altro metodo di accesso.'
-      } else if (msg.includes('Invalid login credentials')) {
+      if (msg.includes('Invalid login credentials')) {
         msg = 'Email o password non corretti.'
-      } else if (msg.includes('User already registered')) {
-        msg = 'Questa email e gia registrata. Prova ad accedere.'
-      } else if (msg.includes('Password should be at least')) {
-        msg = 'La password deve essere di almeno 6 caratteri.'
+      } else if (msg.includes('rate limit') || msg.includes('over_email_send_rate_limit')) {
+        msg = 'Troppe richieste. Aspetta qualche minuto prima di riprovare.'
       }
       setError(msg)
       setLoading(false)
       return
     }
 
-    // Registrazione: serve conferma email
-    if (!isLogin && result?.needsEmailConfirmation) {
-      router.push(`/confirm-email?email=${encodeURIComponent(email)}`)
-      return
-    }
-
-    // Login ok, oppure registrazione con session già attiva
     if (result?.success) {
       window.location.href = '/dashboard'
       return
     }
 
     setLoading(false)
+    return
   }
+
+  // Registrazione
+  const result = await signUp(formData)
+
+  if (result?.error) {
+    let msg = result.error
+    if (msg.includes('rate limit') || msg.includes('over_email_send_rate_limit')) {
+      msg = 'Troppe richieste. Aspetta qualche minuto prima di riprovare.'
+    } else if (msg.includes('User already registered')) {
+      msg = 'Questa email e gia registrata. Prova ad accedere.'
+    } else if (msg.includes('Password should be at least')) {
+      msg = 'La password deve essere di almeno 6 caratteri.'
+    }
+    setError(msg)
+    setLoading(false)
+    return
+  }
+
+  if (result?.needsEmailConfirmation) {
+    router.push(`/confirm-email?email=${encodeURIComponent(email)}`)
+    return
+  }
+
+  if (result?.success) {
+    window.location.href = '/dashboard'
+    return
+  }
+
+  setLoading(false)
+}
 
   return (
     <div className="min-h-screen flex">
