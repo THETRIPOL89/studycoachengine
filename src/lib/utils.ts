@@ -29,9 +29,10 @@ export function mediaPonderata(
   let num = 0
   let den = 0
   for (const e of exams) {
-    if (e.voto_finale == null || e.cfu == null || e.cfu <= 0) continue
-    num += e.voto_finale * e.cfu
-    den += e.cfu
+    if (e.voto_finale == null) continue
+    const peso = e.cfu != null && e.cfu > 0 ? e.cfu : 1
+    num += e.voto_finale * peso
+    den += peso
   }
   if (den === 0) return null
   return Math.round((num / den) * 100) / 100
