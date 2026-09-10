@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { addManualTopics } from '@/actions/exams'
 import { seedExamTopicsFromTitle } from '@/actions/groq'
 import { ArrowLeft, Upload, ListChecks, Sparkles, Loader2, Plus, Trash2, AlertCircle } from 'lucide-react'
+import { TutorialGuide } from '@/components/TutorialGuide'
 
 interface ExamSetupProps {
   examId: string
@@ -81,6 +82,7 @@ export function ExamSetup({ examId, examTitle, categoria, currentTopicCount }: E
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors">
+      <TutorialGuide />
       <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-600">
         <div className="max-w-4xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center gap-2">
           <Link href="/dashboard" className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 transition-colors flex-shrink-0" aria-label="Torna alla dashboard">
@@ -98,7 +100,7 @@ export function ExamSetup({ examId, examTitle, categoria, currentTopicCount }: E
           Abbiamo già creato 5 argomenti di default. Ora scegli se vuoi personalizzarli.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5" data-tour="setup-cards">
           {/* Card A — Carica materiale */}
           <div className="card flex flex-col">
             <div className="flex items-center gap-2 mb-2">

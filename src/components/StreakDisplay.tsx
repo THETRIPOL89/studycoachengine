@@ -100,7 +100,10 @@ export function StreakDisplay({ initial, className = '', onClick }: StreakDispla
       className={`inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg
         bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700
         transition-colors ${pulse ? 'animate-flame-pulse' : ''}
-        ${onClick ? 'hover:bg-coach-50 dark:hover:bg-coach-900/30 hover:border-coach-200 dark:hover:border-coach-700 cursor-pointer' : ''}
+        ${onClick
+      ? 'hover:bg-coach-50 dark:hover:bg-coach-900/30 hover:border-coach-200 dark:hover:border-coach-700 cursor-pointer'
+      : 'cursor-default'
+    }
         ${className}`}
       title={tooltip}
       aria-label={tooltip}

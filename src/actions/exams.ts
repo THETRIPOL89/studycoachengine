@@ -4,6 +4,36 @@ import { createServerSupabase } from '@/lib/supabase'
 import { revalidatePath } from 'next/cache'
 import { Exam, StudySession, Topic } from '@/types/database'
 import { checkPaywall } from '@/actions/subscription'
+import { TUTORIAL_EXAM_PREFIX } from '@/lib/tutorial'
+
+export async function cleanupTutorialExams() {
+  const supabase = await createServerSupabase()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { deleted: 0 }
+
+  const { data, error } = await supabase
+    .from('exams')
+    .select('id, nome_esame')
+    .eq('user_id', user.id)
+
+  if (error || !data) return { deleted: 0, error: error?.message }
+
+  const tutorialIds = (data as { id: string; nome_esame: string }[])
+    .filter((e) => typeof e.nome_esame === 'string' && e.nome_esame.startsWith(TUTORIAL_EXAM_PREFIX))
+    .map((e) => e.id)
+
+  if (tutorialIds.length === 0) return { deleted: 0 }
+
+  const { error: delError } = await supabase
+    .from('exams')
+    .delete()
+    .in('id', tutorialIds)
+
+  if (delError) return { deleted: 0, error: delError.message }
+
+  revalidatePath('/dashboard')
+  return { deleted: tutorialIds.length }
+}
 
 export async function getExams() {
   const supabase = await createServerSupabase()
@@ -33,7 +63,11 @@ export async function getExams() {
   // passato). Teniamo dentro la dashboard anche gli in_corso con data
   // passata cosi' l'utente vede il banner e puo' aprire la modale.
   const all = (data ?? []) as Exam[]
-  const inCorso = all.filter(e => e.stato === 'in_corso' && e.data_esame >= today)
+  const inCorso = all.filter(e =>
+  e.stato === 'in_corso' &&
+  e.data_esame >= today &&
+  !(typeof e.nome_esame === 'string' && e.nome_esame.startsWith(TUTORIAL_EXAM_PREFIX))
+)
   return { exams: inCorso, allExams: all }
 }
 
@@ -69,7 +103,8 @@ export async function getExamsPassati() {
   const passati = all.filter(e =>
     e.stato === 'completato' ||
     e.stato === 'sospeso' ||
-    e.data_esame < today
+    e.data_esame < today &&
+    !(typeof e.nome_esame === 'string' && e.nome_esame.startsWith(TUTORIAL_EXAM_PREFIX))
   )
   return { exams: passati }
 }
@@ -100,38 +135,41 @@ export async function getExamById(id: string) {
 export async function createExam(formData: FormData) {
   const supabase = await createServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
-
   if (!user) return { error: 'Non autenticato' }
 
-  // Paywall: i free user possono avere 1 solo esame attivo. Se ne hanno
-  // già uno, blocchiamo la creazione e ritorniamo un codice strutturato
-  // che il client intercetta per aprire il PaywallModal.
-  const paywall = await checkPaywall('exam')
-  if (!paywall.allowed) {
-    if ('code' in paywall) {
-      return { error: 'Hai già un esame attivo. Passa a Premium per averne illimitati.', code: paywall.code, reason: paywall.reason }
+  const rawNome = (formData.get('nome_esame') as string) || ''
+  const isTutorial = rawNome.startsWith(TUTORIAL_EXAM_PREFIX)
+
+  // Paywall solo per esami reali. I tutorial non consumano lo slot free.
+  if (!isTutorial) {
+    const paywall = await checkPaywall('exam')
+    if (!paywall.allowed) {
+      if ('code' in paywall) {
+        return {
+          error: 'Hai già un esame attivo. Passa a Premium per averne illimitati.',
+          code: paywall.code,
+          reason: paywall.reason,
+        }
+      }
+      return { error: paywall.error }
     }
-    return { error: paywall.error }
   }
 
   const examData = {
     user_id: user.id,
-    nome_esame: formData.get('nome_esame') as string,
+    nome_esame: rawNome,
     universita: formData.get('universita') as string,
     corso: formData.get('corso') as string,
-    professore: formData.get('professore') as string || null,
+    professore: (formData.get('professore') as string) || null,
     data_esame: formData.get('data_esame') as string,
     voto_obiettivo: parseInt(formData.get('voto_obiettivo') as string),
     modalita: formData.get('modalita') as 'scritto' | 'orale' | 'misto' | null,
     ore_giorno: parseInt(formData.get('ore_giorno') as string) || 2,
-    categoria: formData.get('categoria') as 'scientifica' | 'mnemonica' | 'applicativa' || 'scientifica'
+    categoria:
+      (formData.get('categoria') as 'scientifica' | 'mnemonica' | 'applicativa') ||
+      'scientifica',
   }
 
-  // Workaround: l'inferenza supabase-js v2 su `from('exams').insert(...)`
-  // collassa il parametro a `never[]` quando l'utente non ha un profile
-  // valido (auth transitorio) o quando il type `Database` ha shapes
-  // complesse. I dati sono comunque validati runtime da RLS + check
-  // constraints del DB. Vedere src/types/database.ts per il commento.
   const { data, error } = await supabase
     .from('exams')
     .insert(examData as never)
@@ -141,9 +179,7 @@ export async function createExam(formData: FormData) {
   if (error) return { error: error.message }
 
   const inserted = data as { id: string }
-
   await generateDefaultTopics(inserted.id, examData.categoria)
-
   revalidatePath('/dashboard')
   return { success: true, examId: inserted.id }
 }

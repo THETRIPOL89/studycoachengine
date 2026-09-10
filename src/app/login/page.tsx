@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { signUp, signIn } from '@/actions/auth'
 import { BookOpen, GraduationCap, LogIn, UserPlus, AlertTriangle, Loader2 } from 'lucide-react'
 
 export default function LoginPage() {
+  const router = useRouter()
   const [isLogin, setIsLogin] = useState(true)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -15,11 +17,12 @@ export default function LoginPage() {
     setLoading(true)
 
     const formData = new FormData(e.currentTarget)
+    const email = String(formData.get('email') || '').trim()
+
     const action = isLogin ? signIn : signUp
     const result = await action(formData)
 
     if (result?.error) {
-      // Traduci errori comuni di Supabase in italiano
       let msg = result.error
       if (msg.includes('rate limit') || msg.includes('over_email_send_rate_limit')) {
         msg = 'Troppe richieste. Aspetta qualche minuto prima di riprovare, o usa un altro metodo di accesso.'
@@ -31,8 +34,20 @@ export default function LoginPage() {
         msg = 'La password deve essere di almeno 6 caratteri.'
       }
       setError(msg)
-    } else if (result?.success) {
+      setLoading(false)
+      return
+    }
+
+    // Registrazione: serve conferma email
+    if (!isLogin && result?.needsEmailConfirmation) {
+      router.push(`/confirm-email?email=${encodeURIComponent(email)}`)
+      return
+    }
+
+    // Login ok, oppure registrazione con session già attiva
+    if (result?.success) {
       window.location.href = '/dashboard'
+      return
     }
 
     setLoading(false)

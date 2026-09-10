@@ -5,6 +5,7 @@ import { X, Lock, Sparkles, Check } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { PLANS, PAYWALL_REASON_COPY, type PlanKey, type PaywallReason } from '@/lib/pricing'
 import { createCheckoutSession } from '@/actions/subscription'
+import { TUTORIAL_EXAM_PREFIX } from '@/lib/tutorial'
 
 interface PaywallModalProps {
   reason: PaywallReason

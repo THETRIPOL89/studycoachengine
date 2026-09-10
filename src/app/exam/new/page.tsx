@@ -6,7 +6,17 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, Calendar, Target, Clock, BookOpen, GraduationCap, User, FileText, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { PaywallModal } from '@/components/PaywallModal'
+import { TutorialGuide } from '@/components/TutorialGuide'
 import type { PaywallReason } from '@/lib/pricing'
+import { TUTORIAL_EXAM_PREFIX } from '@/lib/tutorial'
+
+function isTourActive(): boolean {
+  try {
+    return sessionStorage.getItem('study-coach-tutorial-active') === '1'
+  } catch {
+    return false
+  }
+}
 
 export default function NewExamPage() {
   const router = useRouter()
@@ -20,12 +30,19 @@ export default function NewExamPage() {
     setLoading(true)
 
     const formData = new FormData(e.currentTarget)
+
+    // Tour attivo → esame tutorial (non conta nel quota free)
+    if (isTourActive()) {
+      const nome = String(formData.get('nome_esame') || '').trim()
+      if (!nome.startsWith(TUTORIAL_EXAM_PREFIX)) {
+        formData.set('nome_esame', `${TUTORIAL_EXAM_PREFIX}${nome || 'Esame di prova'}`)
+      }
+    }
+
     const result = await createExam(formData)
 
     if (result?.error) {
       setLoading(false)
-      // Se il server ha bloccato per paywall, apri la modale invece di
-      // mostrare un errore generico.
       if ('code' in result && result.code === 'quota_exceeded' && 'reason' in result) {
         setPaywallReason(result.reason as PaywallReason)
       } else {
@@ -33,20 +50,30 @@ export default function NewExamPage() {
       }
     } else if (result?.examId) {
       router.push(`/exam/${result.examId}/setup`)
+    } else {
+      setLoading(false)
     }
+
   }
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors">
+      <TutorialGuide />
+
       <div className="max-w-2xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
-        <Link href="/dashboard" className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 mb-4 sm:mb-6 transition-colors">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 mb-4 sm:mb-6 transition-colors"
+        >
           <ArrowLeft className="w-4 h-4" />
           Torna alla dashboard
         </Link>
 
         <div className="card">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Nuovo esame</h1>
-          <p className="text-slate-500 dark:text-slate-400 mb-6">Il Coach costruira il tuo piano di studio personalizzato.</p>
+          <p className="text-slate-500 dark:text-slate-400 mb-6">
+            Il Coach costruira il tuo piano di studio personalizzato.
+          </p>
 
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm dark:bg-red-900/20 dark:border-red-800 dark:text-red-300">
@@ -54,13 +81,23 @@ export default function NewExamPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-4 sm:space-y-5"
+            data-tour="form-nuovo-esame"
+          >
             <div>
               <label className="label dark:text-slate-300 flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-coach-500 flex-shrink-0" />
                 Nome esame *
               </label>
-              <input name="nome_esame" type="text" required className="input" placeholder="Analisi Matematica 1" />
+              <input
+                name="nome_esame"
+                type="text"
+                required
+                className="input"
+                placeholder="Analisi Matematica 1"
+              />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -69,11 +106,23 @@ export default function NewExamPage() {
                   <GraduationCap className="w-4 h-4 text-coach-500 flex-shrink-0" />
                   Universita *
                 </label>
-                <input name="universita" type="text" required className="input" placeholder="Universita di Roma" />
+                <input
+                  name="universita"
+                  type="text"
+                  required
+                  className="input"
+                  placeholder="Universita di Roma"
+                />
               </div>
               <div className="min-w-0">
                 <label className="label dark:text-slate-300">Corso di laurea *</label>
-                <input name="corso" type="text" required className="input" placeholder="Ingegneria" />
+                <input
+                  name="corso"
+                  type="text"
+                  required
+                  className="input"
+                  placeholder="Ingegneria"
+                />
               </div>
             </div>
 
@@ -133,7 +182,12 @@ export default function NewExamPage() {
                   <User className="w-4 h-4 text-coach-500 flex-shrink-0" />
                   Professore
                 </label>
-                <input name="professore" type="text" className="input" placeholder="Opzionale" />
+                <input
+                  name="professore"
+                  type="text"
+                  className="input"
+                  placeholder="Opzionale"
+                />
               </div>
               <div className="min-w-0">
                 <label className="label dark:text-slate-300 flex items-center gap-2">
@@ -149,7 +203,12 @@ export default function NewExamPage() {
             </div>
 
             <div className="pt-4">
-              <button type="submit" disabled={loading} className="btn-primary w-full">
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary w-full"
+                data-tour="submit-esame"
+              >
                 {loading ? (
                   <Loader2 className="w-5 h-5 text-white animate-spin" />
                 ) : (

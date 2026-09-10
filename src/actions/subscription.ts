@@ -6,6 +6,7 @@ import { getStripe, getPriceIdForPlan } from '@/lib/stripe'
 import { checkRateLimit } from '@/actions/rate-limit'
 import type { PlanKey } from '@/lib/pricing'
 import { FREE_LIMITS } from '@/lib/pricing'
+import { TUTORIAL_EXAM_PREFIX } from '@/lib/tutorial'
 
 // ============================================================
 // Cache in-memory (process-local, TTL 30s)
@@ -115,22 +116,31 @@ export async function getQuotaState(): Promise<{
   }
 
   const status = await getSubscriptionStatus(user.id)
-  const isPremium = status.plan === 'premium' && (status.premiumUntil === null || new Date(status.premiumUntil) > new Date())
+  const isPremiumUser =
+    status.plan === 'premium' &&
+    (status.premiumUntil === null || new Date(status.premiumUntil) > new Date())
 
-  const { count: activeExams } = await supabase
+  // Prendiamo nome_esame per escludere i tutorial dal conteggio
+  const { data: exams } = await supabase
     .from('exams')
-    .select('id', { count: 'exact', head: true })
+    .select('id, nome_esame')
     .eq('user_id', user.id)
     .eq('stato', 'in_corso')
 
-  if (isPremium) {
-    return { plan: 'premium', activeExams: activeExams ?? 0, maxActiveExams: Infinity }
+  const activeExams = (exams ?? []).filter((e: any) => {
+    const nome = e?.nome_esame
+    if (typeof nome === 'string' && nome.startsWith(TUTORIAL_EXAM_PREFIX)) return false
+    return true
+  }).length
+
+  if (isPremiumUser) {
+    return { plan: 'premium', activeExams, maxActiveExams: Infinity }
   }
 
   return {
     plan: 'free',
-    activeExams: activeExams ?? 0,
-    maxActiveExams: FREE_LIMITS.maxActiveExams
+    activeExams,
+    maxActiveExams: FREE_LIMITS.maxActiveExams,
   }
 }
 
@@ -161,12 +171,21 @@ export async function checkPaywall(reason: 'exam' | 'ai_tutor'): Promise<
   }
 
   if (reason === 'exam') {
-    const { count } = await supabase
+    const { data: exams, error } = await supabase
       .from('exams')
-      .select('id', { count: 'exact', head: true })
+      .select('id, nome_esame')
       .eq('user_id', user.id)
       .eq('stato', 'in_corso')
-    if ((count ?? 0) >= FREE_LIMITS.maxActiveExams) {
+
+    if (error) return { allowed: false, error: error.message }
+
+    const realCount = (exams ?? []).filter((e: any) => {
+      const nome = e?.nome_esame
+      if (typeof nome === 'string' && nome.startsWith(TUTORIAL_EXAM_PREFIX)) return false
+      return true
+    }).length
+
+    if (realCount >= FREE_LIMITS.maxActiveExams) {
       return { allowed: false, code: 'quota_exceeded', reason: 'exam' }
     }
     return { allowed: true }
@@ -200,13 +219,58 @@ export async function checkPaywallMaterial(examId: string): Promise<
   return { allowed: true }
 }
 
+/**
+ * Aggiorna il profilo utente (nome, corso, università)
+ */
+export async function updateUserProfile(nome: string, corso: string, universita: string): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const supabase = await createServerSupabase()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return { error: 'Non autenticato' }
+    }
+
+    // Update the user metadata in auth and the profiles table
+    const { error: authError } = await supabase.auth.updateUser({
+      data: {
+        nome,
+        universita,
+        corso
+      }
+    })
+
+    if (authError) {
+      return { error: authError.message }
+    }
+
+    // Update the profiles table
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({
+        nome,
+        universita,
+        corso
+      })
+      .eq('id', user.id)
+
+    if (profileError) {
+      return { error: profileError.message }
+    }
+
+    return { success: true }
+  } catch (error: any) {
+    return { error: error?.message ?? 'Errore sconosciuto' }
+  }
+}
+
 // ============================================================
 // Stripe Checkout
 // ============================================================
 
 /**
  * Crea una Stripe Checkout Session per il piano scelto e ritorna la URL
- * a cui redirigere l'utente. Usa service_role per leggere/scrivere
+ * a cui redirigere l'utente.utente. Usa service_role per leggere/scrivere
  * stripe_customer_id (la policy RLS blocca l'utente da farlo).
  */
 export async function createCheckoutSession(plan: PlanKey): Promise<{ url?: string; error?: string }> {
@@ -291,7 +355,7 @@ export async function createCheckoutSession(plan: PlanKey): Promise<{ url?: stri
  */
 export async function createCustomerPortalSession(): Promise<{ url?: string; error?: string }> {
   const supabase = await createServerSupabase()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user} } = await supabase.auth.getUser()
   if (!user) return { error: 'Non autenticato' }
 
   const admin = createAdminSupabase()
@@ -307,10 +371,30 @@ export async function createCustomerPortalSession(): Promise<{ url?: string; err
     return { error: 'Nessun customer Stripe associato a questo account.' }
   }
 
+  const stripe = getStripe()
+  // Verifica che il customer esista ancora in Stripe (può essere stato eliminato o mai creato)
+  let customerId = prof.stripe_customer_id
+  try {
+    const existingCustomer = await stripe.customers.retrieve(customerId)
+    // Customer trovato - usalo
+  } catch (e) {
+    // Customer non esiste più in Stripe - ne crea uno nuovo e salva l'ID
+    const customer = await stripe.customers.create({
+      email: user.email ?? undefined,
+      metadata: { supabase_user_id: user.id }
+    })
+    customerId = customer.id
+    // Aggiorna il profilo con il nuovo customer ID
+    await admin
+      .from('profiles')
+      .update({ stripe_customer_id: customerId } as never)
+      .eq('id', user.id)
+  }
+
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
   try {
-    const session = await getStripe().billingPortal.sessions.create({
-      customer: prof.stripe_customer_id,
+    const session = await stripe.billingPortal.sessions.create({
+      customer: customerId,
       return_url: `${appUrl}/dashboard`
     })
     return { url: session.url }

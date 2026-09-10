@@ -13,7 +13,7 @@ export function EmptyState() {
       <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-sm mx-auto">
         Aggiungi il tuo primo esame e lascia che il Coach costruisca il tuo piano di studio ottimale.
       </p>
-      <Link href="/exam/new" className="btn-primary inline-flex">
+      <Link href="/exam/new" className="btn-primary inline-flex" data-tour="nuovo-esame">
         <Plus className="w-5 h-5" />
         Aggiungi esame
       </Link>

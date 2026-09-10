@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense, useState, useEffect, useMemo } from 'react'
-import { redirect, useSearchParams } from 'next/navigation'
+import { redirect, useSearchParams, useRouter } from 'next/navigation'
 import { getUser } from '@/actions/auth'
 import { getExams } from '@/actions/exams'
 import { signOut } from '@/actions/auth'
@@ -19,6 +19,14 @@ import { PostExamModal } from '@/components/PostExamModal'
 import { TutorialGuide } from '@/components/TutorialGuide'
 import { Plus, LogOut, GraduationCap, Loader2, ArrowDownAZ, Calendar, BarChart3, Sparkles, ChevronUp, ChevronDown, Crown, X, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
+import { isTutorialExamName } from '@/lib/tutorial'
+import { User } from 'lucide-react'
+
+// al posto di:
+// <span className="text-sm text-slate-600 dark:text-slate-300 hidden md:block truncate max-w-[180px]">
+//   {user.user_metadata?.nome ?? 'Utente'}
+// </span>
+
 
 // Modi di ordinamento possibili nella dashboard. 'consigliato' e un ibrido
 // di urgenza (data vicina) + rischio (preparazione bassa) — vedi
@@ -135,6 +143,7 @@ function DashboardPageInner() {
   const [isPremium, setIsPremium] = useState<boolean | null>(null)
   const [paywallOpen, setPaywallOpen] = useState(false)
   const [toast, setToast] = useState<{ kind: 'success' | 'canceled' | 'info'; message: string } | null>(null)
+  const router = useRouter()
   // Sprint 9: se l'utente ha un esame con data passata e nessun voto
   // registrato, mostriamo automaticamente la PostExamModal al primo
   // caricamento della dashboard. Il primo "in ordine di data" viene
@@ -242,7 +251,7 @@ function DashboardPageInner() {
   }
 
   if (loading) return (
-    <div className="flex h-[200px] items-center justify-center">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
       <Loader2 className="w-8 h-8 text-coach-500 animate-spin" />
     </div>
   );
@@ -277,7 +286,7 @@ function DashboardPageInner() {
               appare nella riga sotto full-width, in modo che sia sempre
               raggiungibile senza overflow. */}
             <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
-              <StreakDisplay onClick={() => window.open('/pricing', '_blank')} />
+              <StreakDisplay />
               <DarkModeToggle />
               {isPremium === true && (
                 <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700">
@@ -285,9 +294,14 @@ function DashboardPageInner() {
                   Premium
                 </span>
               )}
-              <span className="text-sm text-slate-600 dark:text-slate-300 hidden md:block truncate max-w-[180px]">
-                {user.email}
-              </span>
+<Link
+  href="/profile"
+  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 transition-colors"
+  aria-label="Profilo"
+  title="Profilo"
+>
+  <User className="w-5 h-5" />
+</Link>
               <form action={signOut}>
                 <button type="submit" className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500 dark:text-slate-400 transition-colors" aria-label="Esci">
                   <LogOut className="w-5 h-5" />
@@ -340,10 +354,14 @@ function DashboardPageInner() {
               }
             </p>
           </div>
-          <Link href="/exam/new" className="btn-primary">
-            <Plus className="w-5 h-5" />
-            <span className="hidden sm:inline">Nuovo esame</span>
-          </Link>
+          <Link
+  href="/exam/new"
+  className="btn-primary"
+  data-tour="nuovo-esame"
+>
+  <Plus className="w-5 h-5" />
+  <span className="hidden sm:inline">Nuovo esame</span>
+       </Link>
         </div>
 
         {/* Filter bar — solo se ci sono piu' di 1 esame (con un solo esame
