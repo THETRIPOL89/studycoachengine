@@ -155,6 +155,15 @@ export async function createExam(formData: FormData) {
     }
   }
 
+  const cfuRaw = formData.get('cfu')
+  const cfuParsed = cfuRaw != null && String(cfuRaw).trim() !== ''
+    ? parseInt(String(cfuRaw), 10)
+    : null
+
+  if (cfuParsed == null || Number.isNaN(cfuParsed) || cfuParsed < 1) {
+    return { error: 'Inserisci i CFU (almeno 1).' }
+  }
+
   const examData = {
     user_id: user.id,
     nome_esame: rawNome,
@@ -168,6 +177,7 @@ export async function createExam(formData: FormData) {
     categoria:
       (formData.get('categoria') as 'scientifica' | 'mnemonica' | 'applicativa') ||
       'scientifica',
+    cfu: cfuParsed,
   }
 
   const { data, error } = await supabase
@@ -219,8 +229,8 @@ async function generateDefaultTopics(examId: string, categoria: string) {
 
   const defaultTopics: Record<string, { nome: string, micro: { titolo: string, tipo: string, durata: number }[] }[]> = {
     scientifica: [
-      { 
-        nome: 'Fondamenti teorici', 
+      {
+        nome: 'Fondamenti teorici',
         micro: [
           { titolo: 'Leggi definizioni e teoremi principali', tipo: 'teoria', durata: 25 },
           { titolo: 'Prendi appunti su formule chiave', tipo: 'teoria', durata: 20 },
@@ -228,32 +238,32 @@ async function generateDefaultTopics(examId: string, categoria: string) {
           { titolo: 'Ripasso flashcard definizioni', tipo: 'ripasso', durata: 15 }
         ]
       },
-      { 
-        nome: 'Esercizi base', 
+      {
+        nome: 'Esercizi base',
         micro: [
           { titolo: 'Risolvi 2 esercizi standard', tipo: 'esercizio', durata: 30 },
           { titolo: 'Verifica soluzioni e correggi errori', tipo: 'ripasso', durata: 15 },
           { titolo: 'Esercizio simile senza aiuti', tipo: 'esercizio', durata: 25 }
         ]
       },
-      { 
-        nome: 'Problemi complessi', 
+      {
+        nome: 'Problemi complessi',
         micro: [
           { titolo: 'Analisi problema: identifica dati e incognite', tipo: 'teoria', durata: 15 },
           { titolo: 'Risoluzione problema completo', tipo: 'esercizio', durata: 35 },
           { titolo: 'Verifica e discussione risultato', tipo: 'ripasso', durata: 15 }
         ]
       },
-      { 
-        nome: 'Dimostrazioni', 
+      {
+        nome: 'Dimostrazioni',
         micro: [
           { titolo: 'Leggi dimostrazione dal libro', tipo: 'teoria', durata: 20 },
           { titolo: 'Riscrivi dimostrazione a memoria', tipo: 'esercizio', durata: 25 },
           { titolo: 'Identifica passaggi critici e ipotesi', tipo: 'ripasso', durata: 15 }
         ]
       },
-      { 
-        nome: 'Simulazione esame', 
+      {
+        nome: 'Simulazione esame',
         micro: [
           { titolo: 'Quiz a tempo: 5 domande miste', tipo: 'esercizio', durata: 25 },
           { titolo: 'Correzione e analisi errori', tipo: 'ripasso', durata: 20 }
@@ -261,37 +271,37 @@ async function generateDefaultTopics(examId: string, categoria: string) {
       }
     ],
     mnemonica: [
-      { 
-        nome: 'Nozioni fondamentali', 
+      {
+        nome: 'Nozioni fondamentali',
         micro: [
           { titolo: 'Leggi e sottolinea concetti chiave', tipo: 'teoria', durata: 25 },
           { titolo: 'Crea mappe mentali', tipo: 'teoria', durata: 20 },
           { titolo: 'Quiz rapido verifica', tipo: 'esercizio', durata: 15 }
         ]
       },
-      { 
-        nome: 'Spaced repetition', 
+      {
+        nome: 'Spaced repetition',
         micro: [
           { titolo: 'Ripassa argomenti giorno 1, 3, 7', tipo: 'ripasso', durata: 20 },
           { titolo: 'Flashcard difficili', tipo: 'ripasso', durata: 20 }
         ]
       },
-      { 
-        nome: 'Quiz interattivi', 
+      {
+        nome: 'Quiz interattivi',
         micro: [
           { titolo: '20 domande a risposta multipla', tipo: 'esercizio', durata: 25 },
           { titolo: 'Correggi e approfondisci errori', tipo: 'ripasso', durata: 15 }
         ]
       },
-      { 
-        nome: 'Domande aperte', 
+      {
+        nome: 'Domande aperte',
         micro: [
           { titolo: 'Scrivi 3 risposte aperte', tipo: 'esercizio', durata: 30 },
           { titolo: 'Confronta con modello ideale', tipo: 'ripasso', durata: 15 }
         ]
       },
-      { 
-        nome: 'Simulazione orale', 
+      {
+        nome: 'Simulazione orale',
         micro: [
           { titolo: 'Simula colloquio con domande', tipo: 'simulazione', durata: 25 },
           { titolo: 'Registrati e valuta', tipo: 'ripasso', durata: 15 }
@@ -299,36 +309,36 @@ async function generateDefaultTopics(examId: string, categoria: string) {
       }
     ],
     applicativa: [
-      { 
-        nome: 'Teoria di base', 
+      {
+        nome: 'Teoria di base',
         micro: [
           { titolo: 'Leggi concetti con esempi pratici', tipo: 'teoria', durata: 25 },
           { titolo: 'Prendi appunti su casi studio', tipo: 'teoria', durata: 20 }
         ]
       },
-      { 
-        nome: 'Casi pratici', 
+      {
+        nome: 'Casi pratici',
         micro: [
           { titolo: 'Analisi caso reale', tipo: 'esercizio', durata: 30 },
           { titolo: 'Proposta soluzione alternativa', tipo: 'esercizio', durata: 20 }
         ]
       },
-      { 
-        nome: 'Esercizi applicativi', 
+      {
+        nome: 'Esercizi applicativi',
         micro: [
           { titolo: 'Esercizio con dati reali', tipo: 'esercizio', durata: 30 },
           { titolo: 'Discussione criticita', tipo: 'ripasso', durata: 15 }
         ]
       },
-      { 
-        nome: 'Analisi critica', 
+      {
+        nome: 'Analisi critica',
         micro: [
           { titolo: 'Confronta 2 approcci diversi', tipo: 'teoria', durata: 25 },
           { titolo: 'Scegli e giustifica approccio', tipo: 'esercizio', durata: 20 }
         ]
       },
-      { 
-        nome: 'Discussione', 
+      {
+        nome: 'Discussione',
         micro: [
           { titolo: 'Prepara argomentazione', tipo: 'teoria', durata: 20 },
           { titolo: 'Simula discussione', tipo: 'simulazione', durata: 20 }

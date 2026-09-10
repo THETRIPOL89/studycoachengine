@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createExam } from '@/actions/exams'
+import { getUser } from '@/actions/auth'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Calendar, Target, Clock, BookOpen, GraduationCap, User, FileText, Loader2 } from 'lucide-react'
 import Link from 'next/link'
@@ -24,6 +25,27 @@ export default function NewExamPage() {
   const [error, setError] = useState('')
   const [paywallReason, setPaywallReason] = useState<PaywallReason | null>(null)
 
+  // Prefill dal profilo
+  const [universita, setUniversita] = useState('')
+  const [corso, setCorso] = useState('')
+  const [prefillReady, setPrefillReady] = useState(false)
+
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const user = await getUser()
+        const meta = user?.user_metadata ?? {}
+        setUniversita(meta.universita ?? '')
+        setCorso(meta.corso ?? '')
+      } catch {
+        // ignore
+      } finally {
+        setPrefillReady(true)
+      }
+    }
+    loadProfile()
+  }, [])
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError('')
@@ -31,11 +53,16 @@ export default function NewExamPage() {
 
     const formData = new FormData(e.currentTarget)
 
-    // Tour attivo → esame tutorial (non conta nel quota free)
     if (isTourActive()) {
       const nome = String(formData.get('nome_esame') || '').trim()
       if (!nome.startsWith(TUTORIAL_EXAM_PREFIX)) {
         formData.set('nome_esame', `${TUTORIAL_EXAM_PREFIX}${nome || 'Esame di prova'}`)
+      }
+      try {
+        sessionStorage.setItem('study-coach-tutorial-step', 'setup-choice')
+        sessionStorage.setItem('study-coach-tutorial-active', '1')
+      } catch {
+        // ignore
       }
     }
 
@@ -53,7 +80,6 @@ export default function NewExamPage() {
     } else {
       setLoading(false)
     }
-
   }
 
   return (
@@ -81,50 +107,62 @@ export default function NewExamPage() {
             </div>
           )}
 
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-4 sm:space-y-5"
-            data-tour="form-nuovo-esame"
-          >
-            <div>
-              <label className="label dark:text-slate-300 flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-coach-500 flex-shrink-0" />
-                Nome esame *
-              </label>
-              <input
-                name="nome_esame"
-                type="text"
-                required
-                className="input"
-                placeholder="Analisi Matematica 1"
-              />
+          {/* Aspetta il prefill così i default non restano vuoti */}
+          {!prefillReady ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="w-6 h-6 text-coach-500 animate-spin" />
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="min-w-0">
+          ) : (
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-4 sm:space-y-5"
+              data-tour="form-nuovo-esame"
+            >
+              <div>
                 <label className="label dark:text-slate-300 flex items-center gap-2">
-                  <GraduationCap className="w-4 h-4 text-coach-500 flex-shrink-0" />
-                  Universita *
+                  <BookOpen className="w-4 h-4 text-coach-500 flex-shrink-0" />
+                  Nome esame *
                 </label>
                 <input
-                  name="universita"
+                  name="nome_esame"
                   type="text"
                   required
                   className="input"
-                  placeholder="Universita di Roma"
+                  placeholder="Analisi Matematica 1"
                 />
               </div>
-              <div className="min-w-0">
-                <label className="label dark:text-slate-300">Corso di laurea *</label>
-                <input
-                  name="corso"
-                  type="text"
-                  required
-                  className="input"
-                  placeholder="Ingegneria"
-                />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="min-w-0">
+                  <label className="label dark:text-slate-300 flex items-center gap-2">
+                    <GraduationCap className="w-4 h-4 text-coach-500 flex-shrink-0" />
+                    Universita *
+                  </label>
+                  <input
+                    name="universita"
+                    type="text"
+                    required
+                    className="input"
+                    placeholder="Universita di Roma"
+                    value={universita}
+                    onChange={(e) => setUniversita(e.target.value)}
+                  />
+                </div>
+                <div className="min-w-0">
+                  <label className="label dark:text-slate-300">Corso di laurea *</label>
+                  <input
+                    name="corso"
+                    type="text"
+                    required
+                    className="input"
+                    placeholder="Ingegneria"
+                    value={corso}
+                    onChange={(e) => setCorso(e.target.value)}
+                  />
+                </div>
               </div>
-            </div>
+
+              {/* ... resto dei campi invariato (data, voto, ore, modalita, professore, categoria, submit) ... */}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="min-w-0">
@@ -149,7 +187,19 @@ export default function NewExamPage() {
                 </select>
               </div>
             </div>
-
+            <div className="min-w-0">
+  <label className="label dark:text-slate-300">CFU *</label>
+  <input
+    name="cfu"
+    type="number"
+    required
+    min={1}
+    max={30}
+    defaultValue={6}
+    className="input"
+    placeholder="6"
+  />
+</div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="min-w-0">
                 <label className="label dark:text-slate-300 flex items-center gap-2">
@@ -165,6 +215,7 @@ export default function NewExamPage() {
                   <option value="6">6+ ore</option>
                 </select>
               </div>
+
               <div className="min-w-0">
                 <label className="label dark:text-slate-300">Modalita esame</label>
                 <select name="modalita" className="input">
@@ -216,16 +267,17 @@ export default function NewExamPage() {
                 )}
               </button>
             </div>
-          </form>
+            </form>
+            )}
+          </div>
         </div>
-      </div>
 
-      {paywallReason && (
-        <PaywallModal
-          reason={paywallReason}
-          onClose={() => setPaywallReason(null)}
-        />
-      )}
-    </div>
-  )
-}
+        {paywallReason && (
+          <PaywallModal
+            reason={paywallReason}
+            onClose={() => setPaywallReason(null)}
+          />
+        )}
+      </div>
+    )
+  }

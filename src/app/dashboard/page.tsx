@@ -21,6 +21,7 @@ import { Plus, LogOut, GraduationCap, Loader2, ArrowDownAZ, Calendar, BarChart3,
 import Link from 'next/link'
 import { isTutorialExamName } from '@/lib/tutorial'
 import { User } from 'lucide-react'
+import { mediaPonderata } from '@/lib/utils'
 
 // al posto di:
 // <span className="text-sm text-slate-600 dark:text-slate-300 hidden md:block truncate max-w-[180px]">
@@ -235,6 +236,11 @@ function DashboardPageInner() {
     return copy
   }, [exams, sortMode, currentDir])
 
+  const media = useMemo(
+    () => mediaPonderata(examsPassati),
+    [examsPassati]
+  )
+
   // Click su un filtro inattivo: switch mode + applica direzione default.
   // Click sul filtro attivo: inverte la direzione asc/desc mantenendo il mode.
   function handleSortClick(mode: SortMode) {
@@ -413,23 +419,30 @@ function DashboardPageInner() {
             (l'utente ha gia' dato l'esame, non c'e' un "Coach" da aprire).
             Per rivedere i dettagli storici l'utente va sulla pagina
             /exam/[id] direttamente (vedi sprint 9 modalita' passato). */}
-        {examsPassati.length > 0 && (
-          <section className="mt-10">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Esami passati</h2>
-              </div>
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-full">
-                {examsPassati.length}
-              </span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {examsPassati.map((exam: any) => (
-                <ExamPassedCard key={exam.id} exam={exam} />
-              ))}
-            </div>
-          </section>
-        )}
+            {examsPassati.length > 0 && (
+    <section className="mt-10">
+      <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+          Esami passati
+        </h2>
+        <div className="flex items-center gap-2">
+          {media != null && (
+            <span className="text-sm font-semibold text-coach-700 dark:text-coach-300 bg-coach-50 dark:bg-coach-900/30 border border-coach-200 dark:border-coach-700 px-3 py-1.5 rounded-full">
+              Media ponderata: {media}/30
+            </span>
+          )}
+          <span className="text-xs font-semibold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-full">
+            {examsPassati.length}
+          </span>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {examsPassati.map((exam: any) => (
+                    <ExamPassedCard key={exam.id} exam={exam} />
+                  ))}
+                </div>
+    </section>
+  )}
       </main>
 
       {/* Toast per upgrade success/canceled */}

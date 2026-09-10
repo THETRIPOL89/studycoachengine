@@ -69,6 +69,7 @@ export interface Database {
           preparazione_percentuale: number
           giorni_mancanti: number
           created_at: string
+          cfu: number | null
           // Campi Sprint 9 - esito finale dell'esame. NULL finche'
           // l'utente non compila la PostExamModal. Per la UI si legge
           // direttamente da Row; la scrittura passa da submitPostExam()
@@ -91,6 +92,7 @@ export interface Database {
           ore_giorno?: number
           stato?: 'in_corso' | 'completato' | 'sospeso'
           categoria?: 'scientifica' | 'mnemonica' | 'applicativa'
+          cfu?: number | null
           // I campi Sprint 9 sono sempre null all'inserimento: un
           // esame appena creato non ha ancora un esito. Si compilano
           // dopo, via submitPostExam().
@@ -110,6 +112,7 @@ export interface Database {
           data_completamento?: string | null
           argomenti_usciti?: string | null
           domande_ricevute?: string | null
+          cfu?: number | null
         }
         Relationships: []
       }
