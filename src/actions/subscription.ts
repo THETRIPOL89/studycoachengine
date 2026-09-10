@@ -246,13 +246,13 @@ export async function updateUserProfile(nome: string, corso: string, universita:
 
     // Update the profiles table
     const { error: profileError } = await supabase
-      .from('profiles')
-      .update({
-        nome,
-        universita,
-        corso
-      })
-      .eq('id', user.id)
+  .from('profiles')
+  .update({
+    nome,
+    universita,
+    corso,
+  } as never)
+  .eq('id', user.id)
 
     if (profileError) {
       return { error: profileError.message }
