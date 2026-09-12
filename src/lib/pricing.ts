@@ -9,6 +9,9 @@
 
 export type PlanKey = 'monthly' | 'semestral' | 'annual'
 
+export const LAUNCH_DISCOUNT_PERCENT = 40
+export const LAUNCH_OFFER_END = '2026-10-15' // allinea con la landing
+
 export interface PlanInfo {
   key: PlanKey
   /** Prezzo totale del periodo, formattato per display (es. "€24,99"). */
@@ -27,35 +30,41 @@ export interface PlanInfo {
   isRecommended?: boolean
 }
 
-export const PLANS: PlanInfo[] = [
+export const PLANS = [
   {
-    key: 'monthly',
-    totalDisplay: '€4,99',
-    periodDisplay: 'al mese',
-    effectiveMonthly: '',
-    savingBadge: '',
-    pitch: 'Massima flessibilità, cancella quando vuoi.',
-    sortOrder: 1
+    key: 'monthly' as const,
+    sortOrder: 1,
+    isRecommended: false,
+    totalDisplay: '4,99€',
+    periodDisplay: '/mese',
+    effectiveMonthly: null as string | null,
+    savingBadge: null as string | null,
+    pitch: 'Flessibile. Disdici quando vuoi.',
+    // listino in centesimi se ti serve altrove
+    listPriceEuro: 4.99,
   },
   {
-    key: 'semestral',
-    totalDisplay: '€24,99',
-    periodDisplay: 'ogni 6 mesi',
-    effectiveMonthly: '€4,17',
-    savingBadge: 'Risparmi 17%',
-    pitch: 'Ideale per un semestre universitario.',
+    key: 'semestral' as const,
     sortOrder: 2,
-    isRecommended: true
+    isRecommended: false,
+    totalDisplay: '24,99€',
+    periodDisplay: '/6 mesi',
+    effectiveMonthly: '4,17€',
+    savingBadge: 'Risparmi rispetto al mensile',
+    pitch: 'Una sessione di esami intera, senza pensare al rinnovo ogni mese.',
+    listPriceEuro: 24.99,
   },
   {
-    key: 'annual',
-    totalDisplay: '€44,99',
-    periodDisplay: 'all\'anno',
-    effectiveMonthly: '€3,75',
-    savingBadge: 'Risparmi 25%',
-    pitch: 'Per chi studia tutto l\'anno accademico.',
-    sortOrder: 3
-  }
+    key: 'annual' as const,
+    sortOrder: 3,
+    isRecommended: true,
+    totalDisplay: '44,99€',
+    periodDisplay: '/anno',
+    effectiveMonthly: '3,75€',
+    savingBadge: 'Miglior prezzo / mese',
+    pitch: 'Un anno di Coach al costo minimo. Ideale se hai più esami davanti.',
+    listPriceEuro: 44.99,
+  },
 ]
 
 /** Quota per i free user (singolo esame, singolo materiale, no AI Tutor). */
@@ -83,4 +92,18 @@ export const PAYWALL_REASON_COPY: Record<PaywallReason, { title: string; subtitl
     subtitle:
       'Chiedi spiegazioni personalizzate con un click. Passa a Premium per sbloccare l\'AI Tutor.'
   }
+}
+
+export type PlanKey = 'monthly' | 'semestral' | 'annual'
+
+export function launchPriceEuro(listPriceEuro: number): number {
+  return Math.round(listPriceEuro * (1 - LAUNCH_DISCOUNT_PERCENT / 100) * 100) / 100
+}
+
+export function formatEuro(n: number): string {
+  return n.toFixed(2).replace('.', ',') + '€'
+}
+
+export function isLaunchOfferActive(now = new Date()): boolean {
+  return now <= new Date(LAUNCH_OFFER_END + 'T23:59:59')
 }
