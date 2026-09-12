@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createBrowserSupabase } from '@/lib/supabase-browser' // adatta al path del tuo client browser
+import { createBrowserClient } from '@/lib/supabase'
 import { GraduationCap, Loader2, Lock } from 'lucide-react'
 
 export default function ResetPasswordPage() {
@@ -14,13 +14,11 @@ export default function ResetPasswordPage() {
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
 
-  // 1) Stabilisci la session di recovery dal link email
   useEffect(() => {
-    const supabase = createBrowserSupabase()
+    const supabase = createBrowserClient()
 
     async function init() {
       try {
-        // PKCE: ?code=...
         const params = new URLSearchParams(window.location.search)
         const code = params.get('code')
 
@@ -31,13 +29,17 @@ export default function ResetPasswordPage() {
             setReady(false)
             return
           }
-          // Pulisci la query
           window.history.replaceState({}, '', '/reset-password')
         }
 
-        const { data: { session } } = await supabase.auth.getSession()
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+
         if (!session) {
-          setError('Sessione assente. Apri il link dalla email oppure richiedi un nuovo reset.')
+          setError(
+            'Sessione assente. Apri il link dalla email oppure richiedi un nuovo reset.'
+          )
           setReady(false)
           return
         }
@@ -51,8 +53,9 @@ export default function ResetPasswordPage() {
 
     init()
 
-    // Fallback: evento recovery (alcuni setup)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') setReady(true)
     })
 
@@ -73,7 +76,7 @@ export default function ResetPasswordPage() {
     }
 
     setLoading(true)
-    const supabase = createBrowserSupabase()
+    const supabase = createBrowserClient()
     const { error: updateError } = await supabase.auth.updateUser({ password })
     setLoading(false)
 
@@ -87,6 +90,7 @@ export default function ResetPasswordPage() {
     }
 
     router.push('/dashboard')
+    router.refresh()
   }
 
   return (
