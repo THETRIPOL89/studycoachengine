@@ -1,27 +1,91 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { updatePassword } from '@/actions/auth'
+import { createBrowserSupabase } from '@/lib/supabase-browser' // adatta al path del tuo client browser
 import { GraduationCap, Loader2, Lock } from 'lucide-react'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
+  const [ready, setReady] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  // 1) Stabilisci la session di recovery dal link email
+  useEffect(() => {
+    const supabase = createBrowserSupabase()
+
+    async function init() {
+      try {
+        // PKCE: ?code=...
+        const params = new URLSearchParams(window.location.search)
+        const code = params.get('code')
+
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code)
+          if (error) {
+            setError('Link non valido o scaduto. Richiedine uno nuovo.')
+            setReady(false)
+            return
+          }
+          // Pulisci la query
+          window.history.replaceState({}, '', '/reset-password')
+        }
+
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session) {
+          setError('Sessione assente. Apri il link dalla email oppure richiedi un nuovo reset.')
+          setReady(false)
+          return
+        }
+
+        setReady(true)
+      } catch {
+        setError('Impossibile verificare il link. Richiedi un nuovo reset.')
+        setReady(false)
+      }
+    }
+
+    init()
+
+    // Fallback: evento recovery (alcuni setup)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') setReady(true)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-    setLoading(true)
-    const formData = new FormData(e.currentTarget)
-    const result = await updatePassword(formData)
-    setLoading(false)
-    if (result.error) {
-      setError(result.error)
+
+    if (password.length < 6) {
+      setError('La password deve avere almeno 6 caratteri')
       return
     }
+    if (password !== confirm) {
+      setError('Le password non coincidono')
+      return
+    }
+
+    setLoading(true)
+    const supabase = createBrowserSupabase()
+    const { error: updateError } = await supabase.auth.updateUser({ password })
+    setLoading(false)
+
+    if (updateError) {
+      setError(
+        updateError.message.includes('session')
+          ? 'Sessione scaduta. Richiedi un nuovo link dalla pagina Password dimenticata.'
+          : updateError.message
+      )
+      return
+    }
+
     router.push('/dashboard')
   }
 
@@ -38,51 +102,62 @@ export default function ResetPasswordPage() {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-300 text-sm">
             {error}
+            {error.includes('link') && (
+              <div className="mt-2">
+                <Link href="/forgot-password" className="underline font-medium">
+                  Richiedi un nuovo link
+                </Link>
+              </div>
+            )}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="label">Nuova password</label>
-            <input
-              name="password"
-              type="password"
-              required
-              minLength={6}
-              className="input"
-              placeholder="Almeno 6 caratteri"
-            />
+        {!ready && !error && (
+          <div className="flex justify-center py-8">
+            <Loader2 className="w-6 h-6 text-coach-500 animate-spin" />
           </div>
-          <div>
-            <label className="label">Conferma password</label>
-            <input
-              name="confirm"
-              type="password"
-              required
-              minLength={6}
-              className="input"
-              placeholder="Ripeti la password"
-            />
-          </div>
-          <button type="submit" disabled={loading} className="btn-primary w-full">
-            {loading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <>
-                <Lock className="w-4 h-4" />
-                Salva password
-              </>
-            )}
-          </button>
-        </form>
+        )}
 
-        <p className="mt-4 text-center text-sm text-slate-500">
-          <Link href="/login" className="hover:text-coach-600">
-            Torna al login
-          </Link>
-        </p>
+        {ready && (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="label">Nuova password</label>
+              <input
+                type="password"
+                required
+                minLength={6}
+                className="input"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Almeno 6 caratteri"
+              />
+            </div>
+            <div>
+              <label className="label">Conferma password</label>
+              <input
+                type="password"
+                required
+                minLength={6}
+                className="input"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                placeholder="Ripeti la password"
+              />
+            </div>
+            <button type="submit" disabled={loading} className="btn-primary w-full">
+              {loading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  <Lock className="w-4 h-4" />
+                  Salva password
+                </>
+              )}
+            </button>
+          </form>
+        )}
       </div>
     </div>
   )
