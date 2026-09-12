@@ -1,6 +1,6 @@
 'use server'
 
-import { createServerSupabase } from '@/lib/supabase'
+import { createServerSupabase } from '@/lib/supabase/server'
 import { createAdminSupabase } from '@/lib/supabase-admin'
 import { getStripe, getPriceIdForPlan } from '@/lib/stripe'
 import { checkRateLimit } from '@/actions/rate-limit'

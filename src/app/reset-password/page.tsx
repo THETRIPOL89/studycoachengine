@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createBrowserClient } from '@/lib/supabase'
+import { createBrowserClient } from '@/lib/supabase/client'
 import { GraduationCap, Loader2, Lock } from 'lucide-react'
 
 export default function ResetPasswordPage() {

@@ -1,6 +1,6 @@
 'use server'
 
-import { createServerSupabase } from '@/lib/supabase'
+import { createServerSupabase } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 // study_sessions.subtopic_id e una colonna UUID. Le activity sintetici
@@ -133,8 +133,8 @@ export async function getMonthlySessions(examId: string, year: number, month: nu
   const supabase = await createServerSupabase()
 
   const startDate = `${year}-${String(month).padStart(2, '0')}-01`
-  const endDate = month === 12 
-    ? `${year + 1}-01-01` 
+  const endDate = month === 12
+    ? `${year + 1}-01-01`
     : `${year}-${String(month + 1).padStart(2, '0')}-01`
 
   const { data, error } = await supabase

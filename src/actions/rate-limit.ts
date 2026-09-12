@@ -1,6 +1,6 @@
 'use server'
 
-import { createServerSupabase } from '@/lib/supabase'
+import { createServerSupabase } from '@/lib/supabase/server'
 
 const WINDOW_MINUTES = 1
 const MAX_CALLS_PER_WINDOW = 10

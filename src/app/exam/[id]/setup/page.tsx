@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createServerSupabase } from '@/lib/supabase'
+import { createServerSupabase } from '@/lib/supabase/server'
 import { ExamSetup } from '@/components/ExamSetup'
 
 export default async function ExamSetupPage({

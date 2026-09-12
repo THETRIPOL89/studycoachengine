@@ -1,6 +1,6 @@
 'use server'
 
-import { createServerSupabase } from '@/lib/supabase'
+import { createServerSupabase } from '@/lib/supabase/server'
 import { checkRateLimit } from './rate-limit'
 import { extractFirstJson, repairTruncatedJson } from './quiz-helpers'
 

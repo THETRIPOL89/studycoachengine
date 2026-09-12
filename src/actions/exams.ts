@@ -1,6 +1,6 @@
 'use server'
 
-import { createServerSupabase } from '@/lib/supabase'
+import { createServerSupabase } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { Exam, StudySession, Topic } from '@/types/database'
 import { checkPaywall } from '@/actions/subscription'
