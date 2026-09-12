@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useTransition, useCallback } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Check, X, Lock, Sparkles, ArrowLeft, Loader2, Tag, Timer } from 'lucide-react'
 import {
@@ -25,7 +25,6 @@ function isPlanKey(v: string | null): v is PlanKey {
 
 export default function PricingPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
 
   const [isPremium, setIsPremium] = useState<boolean | null>(null)
   const [premiumUntil, setPremiumUntil] = useState<string | null>(null)
@@ -77,32 +76,37 @@ export default function PricingPage() {
 
   // Dopo login: ?checkout=annual oppure sessionStorage
   useEffect(() => {
-    if (loggedIn !== true) return
-    if (isPremium === true) return
+  if (loggedIn !== true) return
+  if (isPremium === true) return
 
-    const fromQuery = new URLSearchParams(window.location.search).get('checkout')
-    let plan: PlanKey | null = isPlanKey(fromQuery) ? fromQuery : null
+  const fromQuery = new URLSearchParams(window.location.search).get('checkout')
+  let plan: PlanKey | null =
+    fromQuery === 'monthly' || fromQuery === 'semestral' || fromQuery === 'annual'
+      ? fromQuery
+      : null
 
-    if (!plan) {
-      try {
-        const stored = sessionStorage.getItem(PENDING_PLAN_KEY)
-        if (isPlanKey(stored)) plan = stored
-      } catch {
-        // ignore
-      }
-    }
-
-    if (!plan) return
-
+  if (!plan) {
     try {
-      sessionStorage.removeItem(PENDING_PLAN_KEY)
+      const stored = sessionStorage.getItem('study-coach-pending-plan')
+      if (stored === 'monthly' || stored === 'semestral' || stored === 'annual') {
+        plan = stored
+      }
     } catch {
       // ignore
     }
-    // Pulisci query senza reload
-    window.history.replaceState({}, '', '/pricing')
-    startCheckout(plan)
-  }, [loggedIn, isPremium, startCheckout])
+  }
+
+  if (!plan) return
+
+  try {
+    sessionStorage.removeItem('study-coach-pending-plan')
+  } catch {
+    // ignore
+  }
+
+  window.history.replaceState({}, '', '/pricing')
+  startCheckout(plan)
+}, [loggedIn, isPremium, startCheckout])
 
   async function handleSelect(plan: PlanKey) {
     setError(null)
