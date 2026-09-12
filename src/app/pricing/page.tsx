@@ -80,7 +80,7 @@ export default function PricingPage() {
     if (loggedIn !== true) return
     if (isPremium === true) return
 
-    const fromQuery = searchParams.get('checkout')
+    const fromQuery = new URLSearchParams(window.location.search).get('checkout')
     let plan: PlanKey | null = isPlanKey(fromQuery) ? fromQuery : null
 
     if (!plan) {
@@ -102,7 +102,7 @@ export default function PricingPage() {
     // Pulisci query senza reload
     window.history.replaceState({}, '', '/pricing')
     startCheckout(plan)
-  }, [loggedIn, isPremium, searchParams, startCheckout])
+  }, [loggedIn, isPremium, startCheckout])
 
   async function handleSelect(plan: PlanKey) {
     setError(null)
