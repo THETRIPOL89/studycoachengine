@@ -1,7 +1,7 @@
 'use client'
 
-import { getUser } from '@/actions/auth'
-import { useState, useEffect, useTransition } from 'react'
+import { useState, useEffect, useTransition, useCallback } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Check, X, Lock, Sparkles, ArrowLeft, Loader2, Tag, Timer } from 'lucide-react'
 import {
@@ -14,15 +14,26 @@ import {
   isLaunchOfferActive,
 } from '@/lib/pricing'
 import { getUserPlan, createCheckoutSession } from '@/actions/subscription'
+import { getUser } from '@/actions/auth'
 import { DarkModeToggle } from '@/components/DarkModeToggle'
 
+const PENDING_PLAN_KEY = 'study-coach-pending-plan'
+
+function isPlanKey(v: string | null): v is PlanKey {
+  return v === 'monthly' || v === 'semestral' || v === 'annual'
+}
+
 export default function PricingPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
   const [isPremium, setIsPremium] = useState<boolean | null>(null)
   const [premiumUntil, setPremiumUntil] = useState<string | null>(null)
+  const [backHref, setBackHref] = useState('/')
   const [loadingPlan, setLoadingPlan] = useState<PlanKey | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [loggedIn, setLoggedIn] = useState<boolean | null>(null)
   const [, startTransition] = useTransition()
-  const [backHref, setBackHref] = useState('/')  // default: home (arrivi da "/")
 
   const launchActive = isLaunchOfferActive()
   const offerEndLabel = new Date(LAUNCH_OFFER_END).toLocaleDateString('it-IT', {
@@ -31,23 +42,26 @@ export default function PricingPage() {
     year: 'numeric',
   })
 
+  // Auth + back link
   useEffect(() => {
-  async function load() {
-    const user = await getUser()
-    if (user) {
-      setBackHref('/dashboard')
-      const p = await getUserPlan()
-      setIsPremium(p.isPremium)
-      setPremiumUntil(p.premiumUntil)
-    } else {
-      setBackHref('/')
-      setIsPremium(false)
+    async function load() {
+      const user = await getUser()
+      if (user) {
+        setLoggedIn(true)
+        setBackHref('/dashboard')
+        const p = await getUserPlan()
+        setIsPremium(p.isPremium)
+        setPremiumUntil(p.premiumUntil)
+      } else {
+        setLoggedIn(false)
+        setBackHref('/')
+        setIsPremium(false)
+      }
     }
-  }
-  load()
-}, [])
+    load()
+  }, [])
 
-  function handleSelect(plan: PlanKey) {
+  const startCheckout = useCallback((plan: PlanKey) => {
     setError(null)
     setLoadingPlan(plan)
     startTransition(async () => {
@@ -59,6 +73,56 @@ export default function PricingPage() {
       }
       if (result.url) window.location.assign(result.url)
     })
+  }, [startTransition])
+
+  // Dopo login: ?checkout=annual oppure sessionStorage
+  useEffect(() => {
+    if (loggedIn !== true) return
+    if (isPremium === true) return
+
+    const fromQuery = searchParams.get('checkout')
+    let plan: PlanKey | null = isPlanKey(fromQuery) ? fromQuery : null
+
+    if (!plan) {
+      try {
+        const stored = sessionStorage.getItem(PENDING_PLAN_KEY)
+        if (isPlanKey(stored)) plan = stored
+      } catch {
+        // ignore
+      }
+    }
+
+    if (!plan) return
+
+    try {
+      sessionStorage.removeItem(PENDING_PLAN_KEY)
+    } catch {
+      // ignore
+    }
+    // Pulisci query senza reload
+    window.history.replaceState({}, '', '/pricing')
+    startCheckout(plan)
+  }, [loggedIn, isPremium, searchParams, startCheckout])
+
+  async function handleSelect(plan: PlanKey) {
+    setError(null)
+
+    // Se non sappiamo ancora se è loggato, controlla al volo
+    const user = loggedIn === true ? true : loggedIn === false ? false : !!(await getUser())
+
+    if (!user) {
+      try {
+        sessionStorage.setItem(PENDING_PLAN_KEY, plan)
+      } catch {
+        // ignore
+      }
+      router.push(
+        `/login?next=${encodeURIComponent('/pricing')}&plan=${encodeURIComponent(plan)}`
+      )
+      return
+    }
+
+    startCheckout(plan)
   }
 
   const compareFeatures: Array<{
@@ -228,18 +292,20 @@ export default function PricingPage() {
                       : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-900 dark:text-white disabled:opacity-50',
                   ].join(' ')}
                 >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Reindirizzamento...
-                    </>
-                  ) : isPremium ? (
-                    'Sei già Premium'
-                  ) : launch != null ? (
-                    'Abbonati con lo sconto'
-                  ) : (
-                    'Abbonati'
-                  )}
+                {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Reindirizzamento...
+                </>
+                ) : isPremium ? (
+                'Sei già Premium'
+                ) : loggedIn === false ? (
+                'Registrati e abbonati'
+                ) : launchActive ? (
+                'Abbonati con lo sconto'
+                ) : (
+                'Abbonati'
+                )}
                 </button>
               </div>
             )

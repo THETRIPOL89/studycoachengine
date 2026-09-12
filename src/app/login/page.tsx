@@ -1,77 +1,101 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { signUp, signIn } from '@/actions/auth'
 import { BookOpen, GraduationCap, LogIn, UserPlus, AlertTriangle, Loader2 } from 'lucide-react'
+import Link from 'next/link'
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isLogin, setIsLogin] = useState(true)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  function redirectAfterAuth() {
+    const next = searchParams.get('next')
+    const plan = searchParams.get('plan')
+
+    try {
+      if (plan) sessionStorage.setItem('study-coach-pending-plan', plan)
+    } catch {
+      // ignore
+    }
+
+    if (next === '/pricing' || plan) {
+      const q = plan ? `?checkout=${encodeURIComponent(plan)}` : ''
+      window.location.href = `/pricing${q}`
+      return
+    }
+
+    window.location.href = '/dashboard'
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-  e.preventDefault()
-  setError('')
-  setLoading(true)
+    e.preventDefault()
+    setError('')
+    setLoading(true)
 
-  const formData = new FormData(e.currentTarget)
-  const email = String(formData.get('email') || '').trim()
+    const formData = new FormData(e.currentTarget)
+    const email = String(formData.get('email') || '').trim()
 
-  if (isLogin) {
-    const result = await signIn(formData)
+    if (isLogin) {
+      const result = await signIn(formData)
+      if (result?.error) {
+        let msg = result.error
+        if (msg.includes('Invalid login credentials')) {
+          msg = 'Email o password non corretti.'
+        } else if (msg.includes('rate limit') || msg.includes('over_email_send_rate_limit')) {
+          msg = 'Troppe richieste. Aspetta qualche minuto prima di riprovare.'
+        }
+        setError(msg)
+        setLoading(false)
+        return
+      }
+      if (result?.success) {
+        redirectAfterAuth()
+        return
+      }
+      setLoading(false)
+      return
+    }
 
+    // Registrazione
+    const result = await signUp(formData)
     if (result?.error) {
       let msg = result.error
-      if (msg.includes('Invalid login credentials')) {
-        msg = 'Email o password non corretti.'
-      } else if (msg.includes('rate limit') || msg.includes('over_email_send_rate_limit')) {
+      if (msg.includes('rate limit') || msg.includes('over_email_send_rate_limit')) {
         msg = 'Troppe richieste. Aspetta qualche minuto prima di riprovare.'
+      } else if (msg.includes('User already registered')) {
+        msg = 'Questa email e gia registrata. Prova ad accedere.'
+      } else if (msg.includes('Password should be at least')) {
+        msg = 'La password deve essere di almeno 6 caratteri.'
       }
       setError(msg)
       setLoading(false)
       return
     }
 
+    if (result?.needsEmailConfirmation) {
+      // Dopo conferma email dovranno rifare login: piano resta in sessionStorage
+      try {
+        const plan = searchParams.get('plan')
+        if (plan) sessionStorage.setItem('study-coach-pending-plan', plan)
+      } catch {
+        // ignore
+      }
+      router.push(`/confirm-email?email=${encodeURIComponent(email)}`)
+      return
+    }
+
     if (result?.success) {
-      window.location.href = '/dashboard'
+      redirectAfterAuth()
       return
     }
 
     setLoading(false)
-    return
   }
-
-  // Registrazione
-  const result = await signUp(formData)
-
-  if (result?.error) {
-    let msg = result.error
-    if (msg.includes('rate limit') || msg.includes('over_email_send_rate_limit')) {
-      msg = 'Troppe richieste. Aspetta qualche minuto prima di riprovare.'
-    } else if (msg.includes('User already registered')) {
-      msg = 'Questa email e gia registrata. Prova ad accedere.'
-    } else if (msg.includes('Password should be at least')) {
-      msg = 'La password deve essere di almeno 6 caratteri.'
-    }
-    setError(msg)
-    setLoading(false)
-    return
-  }
-
-  if (result?.needsEmailConfirmation) {
-    router.push(`/confirm-email?email=${encodeURIComponent(email)}`)
-    return
-  }
-
-  if (result?.success) {
-    window.location.href = '/dashboard'
-    return
-  }
-
-  setLoading(false)
-}
 
   return (
     <div className="min-h-screen flex">
@@ -128,6 +152,14 @@ export default function LoginPage() {
               <label className="label">Password</label>
               <input name="password" type="password" required minLength={6} className="input" placeholder="******" />
             </div>
+            <div className="flex justify-end">
+              <Link
+                href="/forgot-password"
+                className="text-xs font-medium text-coach-600 hover:text-coach-700"
+              >
+                Password dimenticata?
+              </Link>
+            </div>
             <button type="submit" disabled={loading} className="btn-primary w-full mt-6">
               {loading ? (
                 <Loader2 className="w-5 h-5 text-white animate-spin" />
@@ -156,5 +188,19 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="w-8 h-8 text-coach-500 animate-spin" />
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   )
 }
