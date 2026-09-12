@@ -24,11 +24,13 @@ export default function ResetPasswordPage() {
 
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code)
+
           if (error) {
             setError('Link non valido o scaduto. Richiedine uno nuovo.')
             setReady(false)
             return
           }
+
           window.history.replaceState({}, '', '/reset-password')
         }
 

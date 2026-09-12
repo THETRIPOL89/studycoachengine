@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { requestPasswordReset } from '@/actions/auth'
 import { GraduationCap, ArrowLeft, Loader2, Mail } from 'lucide-react'
+import { createBrowserClient } from '@/lib/supabase/client'
 
 export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false)
@@ -15,13 +15,23 @@ export default function ForgotPasswordPage() {
     setError('')
     setLoading(true)
     const formData = new FormData(e.currentTarget)
-    const result = await requestPasswordReset(formData)
+    const email = String(formData.get('email') || '').trim()
+
+    const supabase = createBrowserClient()
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+
     setLoading(false)
-    if (result.error) {
-      setError(result.error)
+
+    if (error) {
+      setError(error.message)
       return
     }
+
     setDone(true)
+
   }
 
   return (
