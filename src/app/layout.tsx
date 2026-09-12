@@ -65,6 +65,10 @@ export const metadata: Metadata = {
     ]
   },
 
+  verification: {
+    google: 'BdbnB3x2Rlhf1ylDU7x6aHWQb5VXNxF5UJ__gSFFyFM',
+  },
+
   // PWA-ready (opzionale, harmless)
   applicationName: 'Study Coach',
   appleWebApp: {
