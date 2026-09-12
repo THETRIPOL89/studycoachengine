@@ -94,8 +94,6 @@ export const PAYWALL_REASON_COPY: Record<PaywallReason, { title: string; subtitl
   }
 }
 
-export type PlanKey = 'monthly' | 'semestral' | 'annual'
-
 export function launchPriceEuro(listPriceEuro: number): number {
   return Math.round(listPriceEuro * (1 - LAUNCH_DISCOUNT_PERCENT / 100) * 100) / 100
 }
