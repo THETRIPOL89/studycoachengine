@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 }
 
 /** Cambia questa data quando l'offerta scade (ISO: YYYY-MM-DD) */
-const LAUNCH_OFFER_END = '2026-10-15'
+const LAUNCH_OFFER_END = '2026-12-15'
 const LAUNCH_DISCOUNT = 40 // %
 
 export default function HomePage() {

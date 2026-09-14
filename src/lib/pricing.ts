@@ -10,7 +10,15 @@
 export type PlanKey = 'monthly' | 'semestral' | 'annual'
 
 export const LAUNCH_DISCOUNT_PERCENT = 40
-export const LAUNCH_OFFER_END = '2026-10-15' // allinea con la landing
+export const LAUNCH_OFFER_END = '2026-12-15'
+
+/** Promotion Code Stripe (Dashboard → Product catalog → Coupons → Promotion codes) */
+export const LAUNCH_PROMO_CODE_ID = 'promo_1UFZfAFWeKHA7G5CkyaAocn2'
+
+export function isLaunchOfferActive(now = new Date()): boolean {
+  // fine giornata del 15 dicembre 2026 (ora locale server / UTC ok se coerente)
+  return now.getTime() <= new Date('2026-12-15T23:59:59.999Z').getTime()
+}
 
 export interface PlanInfo {
   key: PlanKey
@@ -100,8 +108,4 @@ export function launchPriceEuro(listPriceEuro: number): number {
 
 export function formatEuro(n: number): string {
   return n.toFixed(2).replace('.', ',') + '€'
-}
-
-export function isLaunchOfferActive(now = new Date()): boolean {
-  return now <= new Date(LAUNCH_OFFER_END + 'T23:59:59')
 }

@@ -5,7 +5,7 @@ import { createAdminSupabase } from '@/lib/supabase-admin'
 import { getStripe, getPriceIdForPlan } from '@/lib/stripe'
 import { checkRateLimit } from '@/actions/rate-limit'
 import type { PlanKey } from '@/lib/pricing'
-import { FREE_LIMITS } from '@/lib/pricing'
+import { FREE_LIMITS, isLaunchOfferActive, LAUNCH_PROMO_CODE_ID, } from '@/lib/pricing'
 import { TUTORIAL_EXAM_PREFIX } from '@/lib/tutorial'
 
 // ============================================================
@@ -324,7 +324,7 @@ export async function createCheckoutSession(plan: PlanKey): Promise<{ url?: stri
 
   // 5. Crea Checkout Session
   try {
-    const session = await stripe.checkout.sessions.create({
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: 'subscription',
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
@@ -337,8 +337,23 @@ export async function createCheckoutSession(plan: PlanKey): Promise<{ url?: stri
       metadata: {
         supabase_user_id: user.id,
         plan
-      }
-    })
+      },
+      subscription_data: {
+        metadata: {
+          supabase_user_id: user.id,
+          plan,
+        },
+      },
+      allow_promotion_codes: false,
+    }
+
+    if (isLaunchOfferActive()) {
+      sessionParams.discounts = [
+        { promotion_code: LAUNCH_PROMO_CODE_ID },
+      ]
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams)
 
     if (!session.url) return { error: 'Stripe non ha restituito una URL di checkout.' }
     return { url: session.url }
