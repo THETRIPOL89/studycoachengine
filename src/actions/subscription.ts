@@ -2,7 +2,7 @@
 
 import { createServerSupabase } from '@/lib/supabase/server'
 import { createAdminSupabase } from '@/lib/supabase-admin'
-import { getStripe, getPriceIdForPlan } from '@/lib/stripe'
+import { getStripe, getPriceIdForPlan, Stripe } from '@/lib/stripe'
 import { checkRateLimit } from '@/actions/rate-limit'
 import type { PlanKey } from '@/lib/pricing'
 import { FREE_LIMITS, isLaunchOfferActive, LAUNCH_PROMO_CODE_ID, } from '@/lib/pricing'
