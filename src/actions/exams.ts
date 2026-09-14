@@ -35,40 +35,85 @@ export async function cleanupTutorialExams() {
   return { deleted: tutorialIds.length }
 }
 
+/*
 export async function getExams() {
-  const supabase = await createServerSupabase()
-  const { data: { user } } = await supabase.auth.getUser()
+  try {
+    const supabase = await createServerSupabase()
 
-  if (!user) return { exams: [] }
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
 
-  // Sprint 9: filtriamo "in_corso" lato client per evitare di dover
-  // tenere sincronizzato lo stato con la data. Un esame la cui
-  // data_esame e passata e ancora in_corso verra' mostrato nella
-  // sezione "In corso" con un banner per ricordare di compilare il
-  // feedback, ma verra' comunque proposto al coach engine solo se
-  // giorni_mancanti >= 0 (vedi generateDailyPlan).
-  const today = new Date().toISOString().split('T')[0]
-  const { data, error } = await supabase
-    .from('exams')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('data_esame', { ascending: true })
+    if (authError) {
+      console.error('getExams auth:', authError.message)
+      return { exams: [], allExams: [] }
+    }
+    if (!user) return { exams: [], allExams: [] }
 
-  if (error) {
-    console.error('Error fetching exams:', error)
-    return { exams: [] }
+    const { data, error } = await supabase
+      .from('exams')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('data_esame', { ascending: true })
+
+    if (error) {
+      console.error('Error fetching exams:', error)
+      return { exams: [], allExams: [] }
+    }
+
+    const today = new Date().toISOString().split('T')[0]
+    const all = (data ?? []) as Exam[]
+    const inCorso = all.filter(
+      (e) => e.stato === 'in_corso' && e.data_esame >= today
+    )
+
+    return { exams: inCorso, allExams: all }
+  } catch (e) {
+    console.error('getExams exception:', e)
+    return { exams: [], allExams: [] } // mai far crashare la page
   }
+}
+*/
+export async function getExams() {
+  try {
+    const supabase = await createServerSupabase()
+    const { data: { user } } = await supabase.auth.getUser()
 
-  // "In corso" = stato in_corso E data_esame >= oggi (cioe non ancora
-  // passato). Teniamo dentro la dashboard anche gli in_corso con data
-  // passata cosi' l'utente vede il banner e puo' aprire la modale.
-  const all = (data ?? []) as Exam[]
-  const inCorso = all.filter(e =>
-  e.stato === 'in_corso' &&
-  e.data_esame >= today &&
-  !(typeof e.nome_esame === 'string' && e.nome_esame.startsWith(TUTORIAL_EXAM_PREFIX))
-)
-  return { exams: inCorso, allExams: all }
+    if (!user) return { exams: [] }
+
+    // Sprint 9: filtriamo "in_corso" lato client per evitare di dover
+    // tenere sincronizzato lo stato con la data. Un esame la cui
+    // data_esame e passata e ancora in_corso verra' mostrato nella
+    // sezione "In corso" con un banner per ricordare di compilare il
+    // feedback, ma verra' comunque proposto al coach engine solo se
+    // giorni_mancanti >= 0 (vedi generateDailyPlan).
+    const today = new Date().toISOString().split('T')[0]
+    const { data, error } = await supabase
+      .from('exams')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('data_esame', { ascending: true })
+
+    if (error) {
+      console.error('Error fetching exams:', error)
+      return { exams: [] }
+    }
+
+    // "In corso" = stato in_corso E data_esame >= oggi (cioe non ancora
+    // passato). Teniamo dentro la dashboard anche gli in_corso con data
+    // passata cosi' l'utente vede il banner e puo' aprire la modale.
+    const all = (data ?? []) as Exam[]
+    const inCorso = all.filter(e =>
+      e.stato === 'in_corso' &&
+      e.data_esame >= today &&
+      !(typeof e.nome_esame === 'string' && e.nome_esame.startsWith(TUTORIAL_EXAM_PREFIX))
+    )
+    return { exams: inCorso, allExams: all }
+  } catch (e) {
+    console.error('getExams exception:', e)
+    return { exams: [], allExams: [] } // mai far crashare la page
+  }
 }
 
 // ============================================================

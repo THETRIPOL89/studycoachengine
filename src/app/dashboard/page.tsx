@@ -168,31 +168,58 @@ function DashboardPageInner() {
   const currentDir = sortDirByMode[sortMode]
 
   useEffect(() => {
-    async function loadData() {
-      const [userRes, examsRes, passatiRes, planRes] = await Promise.all([
-        getUser(),
-        getExams(),
-        getExamsPassati(),
-        getUserPlan()
-      ])
-      setUser(userRes)
-      setExams(examsRes.exams ?? [])
-      setExamsPassati(passatiRes.exams ?? [])
-      setIsPremium(planRes.isPremium)
-      setLoading(false)
+    let cancelled = false
 
-      // Auto-popup PostExamModal: cerca il primo esame "passato" senza
-      // voto_finale (cioe' l'utente non ha ancora confermato l'esito).
-      // Ordinamento: data_esame DESC (il piu' recente prima).
-      const passati = passatiRes.exams ?? []
-      const needsFeedback = passati
-        .filter((e: any) => e.voto_finale == null)
-        .sort((a: any, b: any) => (a.data_esame < b.data_esame ? 1 : -1))[0]
-      if (needsFeedback) {
-        setPostExamTarget({ id: needsFeedback.id, nome: needsFeedback.nome_esame })
+    async function loadData() {
+      try {
+        const [userRes, examsRes, passatiRes, planRes] = await Promise.all([
+          getUser().catch((e) => {
+            console.error('getUser', e)
+            return null
+          }),
+          getExams().catch((e) => {
+            console.error('getExams', e)
+            return { exams: [] }
+          }),
+          getExamsPassati().catch((e) => {
+            console.error('getExamsPassati', e)
+            return { exams: [] }
+          }),
+          getUserPlan().catch((e) => {
+            console.error('getUserPlan', e)
+            return { isPremium: false, premiumUntil: null }
+          }),
+        ])
+
+        if (cancelled) return
+
+        setUser(userRes)
+        setExams(examsRes?.exams ?? [])
+        setExamsPassati(passatiRes?.exams ?? [])
+        setIsPremium(planRes?.isPremium ?? false)
+
+        const passati = passatiRes?.exams ?? []
+        const needsFeedback = passati
+          .filter((e: any) => e.voto_finale == null)
+          .sort((a: any, b: any) => (a.data_esame < b.data_esame ? 1 : -1))[0]
+
+        if (needsFeedback) {
+          setPostExamTarget({
+            id: needsFeedback.id,
+            nome: needsFeedback.nome_esame,
+          })
+        }
+      } catch (e) {
+        console.error('loadData', e)
+      } finally {
+        if (!cancelled) setLoading(false)
       }
     }
+
     loadData()
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   // Toast quando l'utente torna da Stripe Checkout (success/canceled).
