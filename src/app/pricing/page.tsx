@@ -32,6 +32,7 @@ export default function PricingPage() {
   const [loadingPlan, setLoadingPlan] = useState<PlanKey | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null)
+  const [pendingPlan, setPendingPlan] = useState<PlanKey | null>(null)
   const [, startTransition] = useTransition()
 
   const launchActive = isLaunchOfferActive()
@@ -41,24 +42,54 @@ export default function PricingPage() {
     year: 'numeric',
   })
 
-  // Auth + back link
-  useEffect(() => {
-    async function load() {
-      const user = await getUser()
-      if (user) {
-        setLoggedIn(true)
-        setBackHref('/dashboard')
-        const p = await getUserPlan()
-        setIsPremium(p.isPremium)
-        setPremiumUntil(p.premiumUntil)
-      } else {
-        setLoggedIn(false)
-        setBackHref('/')
-        setIsPremium(false)
-      }
-    }
-    load()
-  }, [])
+   //Auth + back link
+   useEffect(() => {
+     let cancelled = false
+
+     async function load() {
+       try {
+         const user = await getUser()
+         if (cancelled) return
+
+         if (!user) {
+           setLoggedIn(false)
+           setBackHref('/')
+           setIsPremium(false)
+           return
+         }
+
+         setLoggedIn(true)
+         setBackHref('/dashboard')
+
+         const p = await getUserPlan()
+         if (cancelled) return
+         setIsPremium(p.isPremium)
+         setPremiumUntil(p.premiumUntil)
+
+         try {
+           const pending = sessionStorage.getItem('study-coach-pending-plan')
+           if (
+             pending === 'monthly' ||
+             pending === 'semestral' ||
+             pending === 'annual'
+           ) {
+             setPendingPlan(pending)
+           }
+         } catch {
+           // ignore
+         }
+       } catch (e) {
+         console.error(e)
+         setLoggedIn(false)
+         setBackHref('/')
+       }
+     }
+
+     load()
+     return () => {
+       cancelled = true
+     }
+   }, [])
 
   const startCheckout = useCallback((plan: PlanKey) => {
     setError(null)
@@ -73,50 +104,49 @@ export default function PricingPage() {
       if (result.url) window.location.assign(result.url)
     })
   }, [startTransition])
-
   // Dopo login: ?checkout=annual oppure sessionStorage
+/*
   useEffect(() => {
-  if (loggedIn !== true) return
-  if (isPremium === true) return
+    if (loggedIn !== true) return
+    if (isPremium === true) return
 
-  const fromQuery = new URLSearchParams(window.location.search).get('checkout')
-  let plan: PlanKey | null =
-    fromQuery === 'monthly' || fromQuery === 'semestral' || fromQuery === 'annual'
-      ? fromQuery
-      : null
+    const fromQuery = new URLSearchParams(window.location.search).get('checkout')
+    let plan: PlanKey | null =
+      fromQuery === 'monthly' || fromQuery === 'semestral' || fromQuery === 'annual'
+        ? fromQuery
+        : null
 
-  if (!plan) {
-    try {
-      const stored = sessionStorage.getItem('study-coach-pending-plan')
-      if (stored === 'monthly' || stored === 'semestral' || stored === 'annual') {
-        plan = stored
+    if (!plan) {
+      try {
+        const stored = sessionStorage.getItem('study-coach-pending-plan')
+        if (stored === 'monthly' || stored === 'semestral' || stored === 'annual') {
+          plan = stored
+        }
+      } catch {
+        // ignore
       }
+    }
+
+    if (!plan) return
+
+    try {
+      sessionStorage.removeItem('study-coach-pending-plan')
     } catch {
       // ignore
     }
-  }
 
-  if (!plan) return
-
-  try {
-    sessionStorage.removeItem('study-coach-pending-plan')
-  } catch {
-    // ignore
-  }
-
-  window.history.replaceState({}, '', '/pricing')
-  startCheckout(plan)
-}, [loggedIn, isPremium, startCheckout])
-
+    window.history.replaceState({}, '', '/pricing')
+    startCheckout(plan)
+  }, [loggedIn, isPremium, startCheckout])
+  */
+  
   async function handleSelect(plan: PlanKey) {
     setError(null)
 
-    // Se non sappiamo ancora se è loggato, controlla al volo
-    const user = loggedIn === true ? true : loggedIn === false ? false : !!(await getUser())
-
+    const user = await getUser()
     if (!user) {
       try {
-        sessionStorage.setItem(PENDING_PLAN_KEY, plan)
+        sessionStorage.setItem('study-coach-pending-plan', plan)
       } catch {
         // ignore
       }
@@ -126,6 +156,12 @@ export default function PricingPage() {
       return
     }
 
+    try {
+      sessionStorage.removeItem('study-coach-pending-plan')
+    } catch {
+      // ignore
+    }
+    setPendingPlan(null)
     startCheckout(plan)
   }
 

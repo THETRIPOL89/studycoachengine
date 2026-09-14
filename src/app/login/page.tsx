@@ -18,18 +18,19 @@ function LoginForm() {
     const plan = searchParams.get('plan')
 
     try {
-      if (plan) sessionStorage.setItem('study-coach-pending-plan', plan)
+      if (plan) {
+        sessionStorage.setItem('study-coach-pending-plan', plan)
+      }
     } catch {
       // ignore
     }
 
     if (next === '/pricing' || plan) {
-      const q = plan ? `?checkout=${encodeURIComponent(plan)}` : ''
-      window.location.href = `/pricing${q}`
+      window.location.assign('/pricing?from=login')
       return
     }
 
-    window.location.href = '/dashboard'
+    window.location.assign('/dashboard')
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
