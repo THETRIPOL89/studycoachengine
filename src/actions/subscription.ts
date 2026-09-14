@@ -332,7 +332,7 @@ export async function createCheckoutSession(plan: PlanKey): Promise<{ url?: stri
       success_url: `${appUrl}/dashboard?upgrade=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/dashboard?upgrade=canceled`,
       client_reference_id: user.id,
-      allow_promotion_codes: true,
+      allow_promotion_codes: false,
       billing_address_collection: 'auto',
       locale: 'it',
       metadata: {
@@ -344,8 +344,7 @@ export async function createCheckoutSession(plan: PlanKey): Promise<{ url?: stri
           supabase_user_id: user.id,
           plan,
         },
-      },
-      allow_promotion_codes: false,
+      }
     }
 
     if (isLaunchOfferActive()) {
