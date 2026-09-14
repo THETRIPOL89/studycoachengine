@@ -309,14 +309,28 @@ export async function createCheckoutSession(plan: PlanKey): Promise<{ url?: stri
   }
 
   let customerId = prof?.stripe_customer_id ?? null
+
+  // Verifica che il customer esista ancora in QUESTO account Stripe (test/live)
+  if (customerId) {
+    try {
+      const existing = await stripe.customers.retrieve(customerId)
+      // Customer cancellato su Stripe
+      if (existing && 'deleted' in existing && existing.deleted) {
+        customerId = null
+      }
+    } catch {
+      // No such customer / modalità test-live diversa
+      customerId = null
+    }
+  }
+
   if (!customerId) {
     const customer = await stripe.customers.create({
       email: user.email ?? undefined,
-      metadata: { supabase_user_id: user.id }
+      metadata: { supabase_user_id: user.id },
     })
     customerId = customer.id
-    // Salva customer_id con service_role (la policy RLS esclude l'utente).
-    // Workaround: l'inferenza supabase-js v2 collassa a `never` (vedi sopra).
+
     await admin
       .from('profiles')
       .update({ stripe_customer_id: customerId } as never)
