@@ -198,6 +198,18 @@ export default function HomePage() {
             </Link>
           </div>
         </div>
+        <p className="text-xs text-slate-400">
+          Design &amp; sviluppo web a cura di{" "}
+          <a
+            href="https://vetrinalab.netlify.app/"
+            target="_blank"
+            rel="noopener"
+            className="font-semibold text-white hover:underline transition-colors"
+            title="VetrinaLab — Web Agency Torino: Siti Web, Web App e Crescita Social"
+          >
+            VetrinaLab
+          </a>
+        </p>
       </footer>
     </div>
   )
